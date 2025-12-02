@@ -1,6 +1,6 @@
-# memoryMuseum
+# 思い出美術館
 
-memoryMuseum は、Node.js/Express をベースにした SQLite + Prisma バックエンド付きの画像保管アプリです。ユーザー登録・ログイン・画像アップロード・ギャラリー閲覧をブラウザから行えます。セッションは署名付き HTTP-only Cookie で管理され、画像ファイルはディスク上 (`uploads/`) に保存され、メタデータは `art` テーブルに格納されます。
+Node.js/Express + SQLite (Prisma) で構築した個人用ドローイングアプリです。「じっくり / サクッと」モードを選択し、キャンバス形状と 5 色パレットを決めてお絵描きできます。完成した作品はサーバーに保存され、展示室 (ギャラリー) でフラットに閲覧できます。セッションは署名付き Cookie を用いた簡易的なものを採用し、初回アクセス時にゲストユーザーが自動発行されます。
 
 ## セットアップ手順
 
@@ -25,29 +25,32 @@ memoryMuseum は、Node.js/Express をベースにした SQLite + Prisma バッ�
    ```
    既定では `http://localhost:3000` で API とフロントエンドが待ち受けます。
 
-## API 概要
+## 画面フロー
 
-- `POST /api/register` – `{ "username": "alice", "password": "secret" }` 形式でユーザーを作成し、`authinfo` / `option` / `gallery` / `user` テーブルに関連レコードを生成、セッションクッキーを返します。
-- `POST /api/login` – 既存ユーザーの認証を行い、セッションを更新します。
-- `POST /api/logout` – 現在のセッションを無効化します。
-- `GET /api/session` – 認証済みユーザーを返します。
-- `POST /api/upload` – `multipart/form-data` (`image` フィールド) で画像をアップロードし、`art` レコードに保存。アップロードした画像IDをログイン中ユーザーの `gallery.artids` に追記します。
-- `GET /api/gallery` – ログイン中ユーザーが紐づく `art` レコードを一覧で取得します。
-- `GET /uploads/:file` – `art.path` に記録された URL で画像ファイルを配信します。
+1. **GET /** – タイトル画面。「TAP TO START」でホームへ。
+2. **GET /home** – ホームメニュー。展示室とアトリエへの動線。
+3. **GET /atelier/mode** – 「じっくり / サクッと」モード選択。ここで制作フローが初期化されます。
+4. **GET /atelier/canvas** – キャンバス形状（円 / 四角）を選択。
+5. **GET /atelier/palette** – 5 色パレットを選択。サクッとモードでは自動提案された 5 色が適用されます。
+6. **GET /atelier/draw** – Canvas API を用いたお絵描き画面。パレットから色を選び、保存で `/api/save` に投稿。
+7. **POST /api/save** – 画像をファイル保存し、`art` レコードを作成。`gallery.artids` JSON を更新。
+8. **GET /atelier/complete** – 完成通知画面。最新の作品をサムネイル表示。
+9. **GET /gallery** – 展示室。保存済み画像をフラットに一覧表示。
 
-### テーブル CRUD エンドポイント（認証必須）
+## 主要 API
 
-- `/api/arts` – `GET` 一覧、`POST` 新規作成（`path` 必須。`timestamp`/`creatorid` 任意）、`PUT /:artid` 更新、`DELETE /:artid` 削除。
-- `/api/galleries` – `artids`（JSON 文字列または配列）と BigInt `timestamp` を扱うギャラリー管理。
-- `/api/options` – BigInt `timestamp` を持つオプション行を CRUD。
-- `/api/authinfos` – `authinfo` レコードの CRUD。パスワード平文 (`password`) もしくはハッシュ済み文字列 (`hashedpass`) を受け付けます。
-- `/api/users` – `gallery` / `option` / `authinfo` への外部キーを設定した `user` 行の CRUD。
+- `POST /api/save` – フロントエンドから送られた Base64 PNG を保存。`art` テーブルにレコード追加後、対応する `gallery.artids` JSON 配列に ID を追記します。
+- `GET /api/gallery` – 現在のユーザーがもつギャラリーの作品一覧を返します。
+- `POST /api/upload` – 既存のマルチパートアップロード API（他アプリ連携向け）。
+- `POST /api/register` / `POST /api/login` / `POST /api/logout` / `GET /api/session` – 認証関連。未ログイン状態でも初回アクセス時にゲストユーザーが自動生成されるため、アプリ利用にアカウントは必須ではありません。
+- `/api/arts`, `/api/galleries`, `/api/options`, `/api/authinfos`, `/api/users` – 管理・デバッグ向け CRUD エンドポイント。すべて認証必須です。
 
-変更系エンドポイントは、ファイルアップロードを除き JSON を受信・返却します。保護されたルートに未認証でアクセスすると HTTP 401 を返します。
+変更系エンドポイントは JSON を受信・返却します（ファイルアップロードは `multipart/form-data`）。保護されたルートに未認証でアクセスした場合、サーバー側でゲストセッションを払い出すか、適切な HTTP ステータスを返します。
 
 ## 開発メモ
 
-- Prisma スキーマは要件に従い、`gallery.artids` は `"[1,2,3]"` のような JSON 文字列で保存します。
-- セッションは署名付き `session_id` Cookie をメモリ上で管理しています。サーバー再起動でセッションはリセットされます。
-- `uploads/` フォルダーは起動時に自動生成され、Git 管理対象外です。
-- Prisma スキーマを変更した際は `cmd /c npm run prisma:generate` を実行してクライアントを再生成してください。
+- Prisma スキーマは `art`・`gallery`・`option` の `timestamp` を `BigInt` で保持します。`gallery.artids` は文字列化した JSON 配列（例: `"[1,2,3]"`）。
+- セッションはメモリ上の Map で管理しており、サーバー再起動で破棄されます。必要に応じて永続化ミドルウェアへ差し替えてください。
+- `uploads/` フォルダーはアプリ起動時に自動で作成され、`.gitignore` 済みです。
+- Prisma スキーマを変更した際は `cmd /c npm run prisma:generate` でクライアントを再生成し、`cmd /c npm run prisma:migrate` でマイグレーションを反映してください。
+- フロントエンドは EJS + Vanilla JS で構成されており、`public/js/` に Canvas 描画やパレット選択ロジックをまとめています。

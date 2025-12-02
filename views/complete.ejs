@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>思い出美術館 | 完成</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .title-section {
+      margin: 20px 0;
+      text-align: center;
+    }
+    .title-input-group {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .title-input {
+      padding: 8px 12px;
+      font-size: 16px;
+      border: 2px solid #333;
+      border-radius: 4px;
+      min-width: 250px;
+    }
+    .title-save-btn {
+      padding: 8px 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .title-save-btn:hover {
+      background-color: #45a049;
+    }
+    .title-save-btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    .title-display {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 10px;
+      color: #333;
+    }
+    .title-message {
+      margin-top: 5px;
+      font-size: 14px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="screen-container complete-screen">
+    <h2>完成しました！</h2>
+    <p>本日の一枚が保存されました。</p>
+    <% if (art) { %>
+      <div class="complete-art">
+        <img src="<%= art.path %>" alt="保存された作品" loading="lazy">
+        <div class="art-meta">No.<%= art.artid %> / <%= new Date(art.timestamp).toLocaleString("ja-JP") %></div>
+      </div>
+      <div class="title-section">
+        <% if (art.title) { %>
+          <div class="title-display">「<%= art.title %>」</div>
+        <% } %>
+        <div class="title-input-group">
+          <input 
+            type="text" 
+            id="titleInput" 
+            class="title-input" 
+            placeholder="作品にタイトルをつける" 
+            value="<%= art.title || '' %>"
+            maxlength="100"
+          >
+          <button id="saveTitleBtn" class="title-save-btn">保存</button>
+        </div>
+        <div id="titleMessage" class="title-message"></div>
+      </div>
+    <% } else { %>
+      <p class="complete-note">最新の作品情報が見つかりませんでした。</p>
+    <% } %>
+    <div class="complete-actions">
+      <a href="/gallery" class="btn-primary">展示室へ</a>
+      <a href="/atelier/mode" class="btn-secondary">もう一度描く</a>
+      <a href="/home" class="btn-link">ホームに戻る</a>
+    </div>
+  </div>
+  <% if (art) { %>
+  <script>
+    const artId = <%= art.artid %>;
+    const titleInput = document.getElementById('titleInput');
+    const saveTitleBtn = document.getElementById('saveTitleBtn');
+    const titleMessage = document.getElementById('titleMessage');
+
+    saveTitleBtn.addEventListener('click', async () => {
+      const title = titleInput.value.trim();
+      
+      if (!title) {
+        titleMessage.textContent = 'タイトルを入力してください';
+        titleMessage.style.color = '#f44336';
+        return;
+      }
+
+      saveTitleBtn.disabled = true;
+      saveTitleBtn.textContent = '保存中...';
+
+      try {
+        const response = await fetch(`/api/art/${artId}/title`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ title })
+        });
+
+        if (response.ok) {
+          titleMessage.textContent = 'タイトルを保存しました！';
+          titleMessage.style.color = '#4CAF50';
+          location.reload();
+        } else {
+          const data = await response.json();
+          titleMessage.textContent = data.error || '保存に失敗しました';
+          titleMessage.style.color = '#f44336';
+        }
+      } catch (error) {
+        titleMessage.textContent = 'エラーが発生しました';
+        titleMessage.style.color = '#f44336';
+      } finally {
+        saveTitleBtn.disabled = false;
+        saveTitleBtn.textContent = '保存';
+      }
+    });
+
+    titleInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        saveTitleBtn.click();
+      }
+    });
+  </script>
+  <% } %>
+</body>
+</html>
