@@ -1,0 +1,56 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  userid     Int      @id @default(autoincrement())
+  galleryid  Int      @unique
+  optionid   Int      @unique
+  authinfoid Int      @unique
+  timestamp  String
+
+  gallery    Gallery  @relation(fields: [galleryid], references: [galleryid])
+  option     Option   @relation(fields: [optionid], references: [optionid])
+  authinfo   AuthInfo @relation(fields: [authinfoid], references: [authinfoid])
+  arts       Art[]
+}
+
+model AuthInfo {
+  authinfoid   Int    @id @default(autoincrement())
+  hashedpass   String
+  userdecidedid String @unique
+
+  user User?
+}
+
+model Option {
+  optionid  Int   @id @default(autoincrement())
+  timestamp BigInt
+
+  user User?
+}
+
+model Gallery {
+  galleryid Int    @id @default(autoincrement())
+  artids    String
+  timestamp BigInt
+
+  user User?
+}
+
+model Art {
+  artid     Int    @id @default(autoincrement())
+  path      String
+  timestamp BigInt
+  creatorid Int
+
+  creator User @relation(fields: [creatorid], references: [userid])
+}

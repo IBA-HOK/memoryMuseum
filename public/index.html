@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>memoryMuseum</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 { margin-bottom: 10px; color: #333; }
+    h2 { margin: 30px 0 15px; color: #555; font-size: 1.3em; }
+    .section { margin-bottom: 30px; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: 600; color: #555; }
+    input[type="text"],
+    input[type="password"],
+    input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    button:hover { background: #0056b3; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    .message {
+      padding: 12px;
+      margin: 15px 0;
+      border-radius: 4px;
+      display: none;
+    }
+    .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .message.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    .show { display: block !important; }
+    .hide { display: none !important; }
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .gallery-item {
+      position: relative;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      overflow: hidden;
+      background: #fafafa;
+    }
+    .gallery-item img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+    }
+    .gallery-item .info {
+      padding: 8px;
+      font-size: 12px;
+      color: #666;
+    }
+    .user-info {
+      padding: 10px;
+      background: #e9ecef;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    .inline-btn {
+      display: inline-block;
+      margin-left: 10px;
+      padding: 5px 15px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>memoryMuseum 🖼️</h1>
+    <p>画像保存・閲覧アプリケーション</p>
+
+    <div class="message" id="message"></div>
+
+    <div id="authSection" class="section">
+      <h2>ログイン / 新規登録</h2>
+      <div class="form-group">
+        <label for="username">ユーザー名</label>
+        <input type="text" id="username" placeholder="ユーザー名を入力">
+      </div>
+      <div class="form-group">
+        <label for="password">パスワード</label>
+        <input type="password" id="password" placeholder="パスワードを入力">
+      </div>
+      <button onclick="handleLogin()">ログイン</button>
+      <button onclick="handleRegister()" class="inline-btn">新規登録</button>
+    </div>
+
+    <div id="appSection" class="section hide">
+      <div class="user-info">
+        ログイン中: <strong id="currentUser"></strong>
+        <button onclick="handleLogout()" class="inline-btn">ログアウト</button>
+      </div>
+
+      <h2>画像アップロード</h2>
+      <div class="form-group">
+        <label for="imageFile">画像ファイル</label>
+        <input type="file" id="imageFile" accept="image/*">
+      </div>
+      <button onclick="handleUpload()">アップロード</button>
+
+      <h2>ギャラリー</h2>
+      <button onclick="loadGallery()">ギャラリーを更新</button>
+      <div class="gallery" id="gallery"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '';
+    let currentSession = null;
+
+    function showMessage(text, type = 'info') {
+      const msg = document.getElementById('message');
+      msg.textContent = text;
+      msg.className = `message ${type} show`;
+      setTimeout(() => msg.classList.remove('show'), 5000);
+    }
+
+    function showAuthSection() {
+      document.getElementById('authSection').classList.remove('hide');
+      document.getElementById('appSection').classList.add('hide');
+    }
+
+    function showAppSection(username) {
+      document.getElementById('authSection').classList.add('hide');
+      document.getElementById('appSection').classList.remove('hide');
+      document.getElementById('currentUser').textContent = username;
+    }
+
+    async function checkSession() {
+      try {
+        const res = await fetch(`${API_BASE}/api/session`, { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          currentSession = data;
+          showAppSection(data.username);
+          loadGallery();
+        } else {
+          showAuthSection();
+        }
+      } catch (err) {
+        showAuthSection();
+      }
+    }
+
+    async function handleRegister() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      if (!username || !password) {
+        showMessage('ユーザー名とパスワードを入力してください', 'error');
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/api/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showMessage('登録に成功しました！', 'success');
+          await checkSession();
+        } else {
+          showMessage(data.error || '登録に失敗しました', 'error');
+        }
+      } catch (err) {
+        showMessage('通信エラーが発生しました', 'error');
+      }
+    }
+
+    async function handleLogin() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      if (!username || !password) {
+        showMessage('ユーザー名とパスワードを入力してください', 'error');
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/api/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showMessage('ログインしました', 'success');
+          await checkSession();
+        } else {
+          showMessage(data.error || 'ログインに失敗しました', 'error');
+        }
+      } catch (err) {
+        showMessage('通信エラーが発生しました', 'error');
+      }
+    }
+
+    async function handleLogout() {
+      try {
+        await fetch(`${API_BASE}/api/logout`, {
+          method: 'POST',
+          credentials: 'include'
+        });
+        showMessage('ログアウトしました', 'info');
+        currentSession = null;
+        showAuthSection();
+        document.getElementById('gallery').innerHTML = '';
+      } catch (err) {
+        showMessage('通信エラーが発生しました', 'error');
+      }
+    }
+
+    async function handleUpload() {
+      const fileInput = document.getElementById('imageFile');
+      if (!fileInput.files.length) {
+        showMessage('画像ファイルを選択してください', 'error');
+        return;
+      }
+      const formData = new FormData();
+      formData.append('image', fileInput.files[0]);
+      try {
+        const res = await fetch(`${API_BASE}/api/upload`, {
+          method: 'POST',
+          credentials: 'include',
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showMessage('画像をアップロードしました', 'success');
+          fileInput.value = '';
+          loadGallery();
+        } else {
+          showMessage(data.error || 'アップロードに失敗しました', 'error');
+        }
+      } catch (err) {
+        showMessage('通信エラーが発生しました', 'error');
+      }
+    }
+
+    async function loadGallery() {
+      try {
+        const res = await fetch(`${API_BASE}/api/gallery`, { credentials: 'include' });
+        const data = await res.json();
+        const galleryEl = document.getElementById('gallery');
+        if (!data.arts || data.arts.length === 0) {
+          galleryEl.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#999;">画像がありません</p>';
+          return;
+        }
+        galleryEl.innerHTML = data.arts.map(art => `
+          <div class="gallery-item">
+            <img src="/${art.path}" alt="Art ${art.artid}">
+            <div class="info">ID: ${art.artid} | ${new Date(art.timestamp).toLocaleString('ja-JP')}</div>
+          </div>
+        `).join('');
+      } catch (err) {
+        showMessage('ギャラリーの読み込みに失敗しました', 'error');
+      }
+    }
+
+    checkSession();
+  </script>
+</body>
+</html>
