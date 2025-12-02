@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>思い出美術館 | パレット選択</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="screen-container color-screen" data-mode="<%= mode %>" data-auto-selected="<%= autoSelected %>">
+    <div class="header-text">今日使う5色を選ぶ</div>
+    <div id="color-grid" class="color-grid"></div>
+    <div class="selected-colors-info" id="selected-colors-info"></div>
+    <form action="/atelier/draw" method="GET" class="palette-form">
+      <input type="hidden" name="shape" value="<%= shape %>">
+      <input type="hidden" name="colors" id="selected-colors-input" value="<%= JSON.stringify(selectedColors) %>">
+      <button type="submit" class="btn-primary">決定して描く</button>
+    </form>
+  </div>
+  <script>
+    window.__PALETTE_DATA__ = {
+      mode: "<%= mode %>",
+      autoSelected: <%= autoSelected ? "true" : "false" %>,
+      availableColors: <%- JSON.stringify(availableColors) %>,
+      selectedColors: <%- JSON.stringify(selectedColors) %>
+    };
+  </script>
+  <script src="/js/palette.js" defer></script>
+</body>
+</html>

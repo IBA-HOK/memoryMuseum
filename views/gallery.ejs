@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>思い出美術館 | 展示室</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="screen-container gallery-screen">
+    <h2>展示室</h2>
+    <% if (!arts || arts.length === 0) { %>
+      <p class="empty-message">まだ作品がありません。アトリエで描いてみましょう。</p>
+    <% } else { %>
+      <div class="gallery-grid">
+        <% arts.forEach(function(art) { %>
+          <div class="gallery-card">
+            <img src="<%= art.path %>" alt="作品 <%= art.artid %>" loading="lazy">
+            <div class="card-footer">
+              <% if (art.title) { %>
+                <div style="font-weight: bold; margin-bottom: 4px;">「<%= art.title %>」</div>
+              <% } %>
+              <span>No.<%= art.artid %></span>
+              <span><%= new Date(art.timestamp).toLocaleDateString("ja-JP") %></span>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
+    <div class="gallery-actions">
+      <a href="/home" class="btn-secondary">ホームへ戻る</a>
+      <a href="/atelier/mode" class="btn-link">アトリエへ</a>
+    </div>
+  </div>
+</body>
+</html>

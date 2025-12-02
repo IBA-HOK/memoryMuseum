@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>思い出美術館 | キャンバス選択</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="screen-container select-screen">
+    <div class="prompt-text">
+      今日のキャンバスを選ぶ<br><span>どのキャンバスが貴方に相応しいですか?</span>
+    </div>
+    <form action="/atelier/palette" method="GET" class="canvas-options">
+      <input type="hidden" name="mode" value="<%= mode %>">
+      <button name="shape" value="circle" class="canvas-item circle" aria-label="円形キャンバス"></button>
+      <button name="shape" value="square" class="canvas-item square" aria-label="四角キャンバス"></button>
+    </form>
+  </div>
+</body>
+</html>

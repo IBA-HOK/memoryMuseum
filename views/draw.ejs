@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>思い出美術館 | お絵描き</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="screen-container draw-screen-v2" data-shape="<%= shape %>" data-mode="<%= mode %>" data-colors='<%- JSON.stringify(colors) %>'>
+    <div class="draw-header">
+      <span><%= mode === "slow" ? "じっくりモード" : "サクッとモード" %></span>
+      <span><%= username %> さん</span>
+      <button type="button" id="undo-btn" class="btn-undo">↩︎ Undo</button>
+    </div>
+    
+    <div class="canvas-section">
+      <div id="canvas-area" class="canvas-area <%= shape === 'circle' ? 'circle' : 'square' %>"></div>
+    </div>
+
+    <div class="palette-section">
+      <div class="palette-header">
+        <span>図形パレット</span>
+        <div class="palette-controls">
+          <button type="button" id="keep-btn" class="btn-shuffle" disabled>キープ</button>
+          <button type="button" id="regen-palette-btn" class="btn-shuffle">シャッフル</button>
+        </div>
+      </div>
+      <div id="shape-palette" class="shape-palette"></div>
+    </div>
+
+    <div class="draw-controls">
+      <button type="button" id="regen-btn" class="btn-secondary">パレット再生成</button>
+      <button type="button" id="complete-btn" class="btn-primary">完成</button>
+    </div>
+
+    <div id="size-control" class="size-control">
+      <label for="size-slider">サイズ</label>
+      <input id="size-slider" type="range" min="20" max="300" value="80">
+      <span id="size-value">80</span>px
+    </div>
+
+    <div class="save-status" id="save-status"></div>
+  </div>
+  <script src="/js/draw.js" defer></script>
+</body>
+</html>
