@@ -120,65 +120,30 @@ function ensureSessionFlow(session) {
   return session.flow;
 }
 
-async function createGuestUser() {
-  const now = Date.now();
-  const nowBigInt = BigInt(now);
-  const timestampText = new Date(now).toISOString();
-  const randomId = `guest-${uuidv4().slice(0, 8)}`;
-  const randomPass = await bcrypt.hash(uuidv4(), 10);
-
-  const createdGallery = await prisma.gallery.create({
-    data: { artids: "[]", timestamp: nowBigInt },
-  });
-  const createdOption = await prisma.option.create({
-    data: { timestamp: nowBigInt },
-  });
-  const createdAuth = await prisma.authInfo.create({
-    data: { hashedpass: randomPass, userdecidedid: randomId },
-  });
-  const user = await prisma.user.create({
-    data: {
-      galleryid: createdGallery.galleryid,
-      optionid: createdOption.optionid,
-      authinfoid: createdAuth.authinfoid,
-      timestamp: timestampText,
-    },
-  });
-
-  return prisma.user.findUnique({
-    where: { userid: user.userid },
-    include: { gallery: true, authinfo: true },
-  });
-}
-
-async function ensureActiveSession(req, res) {
-  let sessionId = req.signedCookies?.[SESSION_COOKIE];
-  if (sessionId) {
-    const existingSession = getSession(sessionId);
-    if (existingSession) {
-      const user = await prisma.user.findUnique({
-        where: { userid: existingSession.userid },
-        include: { gallery: true, authinfo: true },
-      });
-      if (user) {
-        ensureSessionFlow(existingSession);
-        return { sessionId, session: existingSession, user };
-      }
-      sessions.delete(sessionId);
-    }
-    res.clearCookie(SESSION_COOKIE);
-  }
-
-  const user = await createGuestUser();
-  sessionId = setSessionCookie(res, user.userid);
-  const session = getSession(sessionId);
-  ensureSessionFlow(session);
-  return { sessionId, session, user };
-}
-
 async function requireAuth(req, res, next) {
   try {
-    const { sessionId, session, user } = await ensureActiveSession(req, res);
+    const sessionId = req.signedCookies?.[SESSION_COOKIE];
+    if (!sessionId) {
+      return res.redirect('/login');
+    }
+    
+    const session = getSession(sessionId);
+    if (!session) {
+      res.clearCookie(SESSION_COOKIE);
+      return res.redirect('/login');
+    }
+    
+    const user = await prisma.user.findUnique({
+      where: { userid: session.userid },
+      include: { gallery: true, authinfo: true },
+    });
+    
+    if (!user) {
+      destroySession(res, sessionId);
+      return res.redirect('/login');
+    }
+    
+    ensureSessionFlow(session);
     req.user = user;
     req.sessionId = sessionId;
     req.sessionData = session;
@@ -364,25 +329,40 @@ function parseArtIdsString(value) {
 // UI ROUTES
 // --------------------------------------------------------------------------
 
-app.get("/", async (req, res, next) => {
-  try {
-    await ensureActiveSession(req, res);
-    res.render("index");
-  } catch (error) {
-    next(error);
+app.get("/", (req, res) => {
+  const sessionId = req.signedCookies?.[SESSION_COOKIE];
+  if (sessionId && getSession(sessionId)) {
+    res.redirect('/home');
+  } else {
+    res.redirect('/login');
   }
 });
 
-app.get("/home", async (req, res, next) => {
+app.get("/login", (req, res) => {
+  const sessionId = req.signedCookies?.[SESSION_COOKIE];
+  if (sessionId && getSession(sessionId)) {
+    return res.redirect('/home');
+  }
+  res.render('login');
+});
+
+app.get("/register", (req, res) => {
+  const sessionId = req.signedCookies?.[SESSION_COOKIE];
+  if (sessionId && getSession(sessionId)) {
+    return res.redirect('/home');
+  }
+  res.render('register');
+});
+
+app.get("/home", requireAuth, async (req, res, next) => {
   try {
-    const { session, user } = await ensureActiveSession(req, res);
-    const flow = ensureSessionFlow(session);
+    const flow = ensureSessionFlow(req.sessionData);
     flow.mode = null;
     flow.shape = null;
     flow.colors = [];
     flow.lastSavedArtId = null;
-    const username = user?.authinfo?.userdecidedid || "ゲスト";
-    const artIds = await getUserGalleryArtIds(user);
+    const username = req.user.authinfo.userdecidedid;
+    const artIds = await getUserGalleryArtIds(req.user);
     res.render("home", {
       username,
       artCount: artIds.length,
@@ -392,20 +372,18 @@ app.get("/home", async (req, res, next) => {
   }
 });
 
-app.get("/atelier/mode", async (req, res, next) => {
+app.get("/atelier/mode", requireAuth, async (req, res, next) => {
   try {
-    const { session } = await ensureActiveSession(req, res);
-    session.flow = createEmptyFlow();
+    req.sessionData.flow = createEmptyFlow();
     res.render("mode");
   } catch (error) {
     next(error);
   }
 });
 
-app.get("/atelier/canvas", async (req, res, next) => {
+app.get("/atelier/canvas", requireAuth, async (req, res, next) => {
   try {
-    const { session } = await ensureActiveSession(req, res);
-    const flow = ensureSessionFlow(session);
+    const flow = ensureSessionFlow(req.sessionData);
     const mode = req.query.mode || flow.mode;
     if (!mode || !["slow", "quick"].includes(mode)) {
       return res.redirect("/atelier/mode");
@@ -417,10 +395,9 @@ app.get("/atelier/canvas", async (req, res, next) => {
   }
 });
 
-app.get("/atelier/palette", async (req, res, next) => {
+app.get("/atelier/palette", requireAuth, async (req, res, next) => {
   try {
-    const { session } = await ensureActiveSession(req, res);
-    const flow = ensureSessionFlow(session);
+    const flow = ensureSessionFlow(req.sessionData);
 
     if (!flow.mode) {
       return res.redirect("/atelier/mode");
@@ -462,10 +439,9 @@ app.get("/atelier/palette", async (req, res, next) => {
   }
 });
 
-app.get("/atelier/draw", async (req, res, next) => {
+app.get("/atelier/draw", requireAuth, async (req, res, next) => {
   try {
-    const { session, user } = await ensureActiveSession(req, res);
-    const flow = ensureSessionFlow(session);
+    const flow = ensureSessionFlow(req.sessionData);
 
     const shapeFromQuery = req.query.shape;
     if (shapeFromQuery && ["circle", "square"].includes(shapeFromQuery)) {
@@ -492,17 +468,16 @@ app.get("/atelier/draw", async (req, res, next) => {
       mode: flow.mode,
       shape: flow.shape,
       colors: flow.colors,
-      username: user?.authinfo?.userdecidedid || "ゲスト",
+      username: req.user.authinfo.userdecidedid,
     });
   } catch (error) {
     next(error);
   }
 });
 
-app.get("/atelier/complete", async (req, res, next) => {
+app.get("/atelier/complete", requireAuth, async (req, res, next) => {
   try {
-    const { session } = await ensureActiveSession(req, res);
-    const flow = ensureSessionFlow(session);
+    const flow = ensureSessionFlow(req.sessionData);
     let art = null;
     if (flow.lastSavedArtId) {
       const artRecord = await prisma.art.findUnique({ where: { artid: flow.lastSavedArtId } });
@@ -524,9 +499,8 @@ app.get("/atelier/complete", async (req, res, next) => {
   }
 });
 
-app.put("/api/art/:artid/title", async (req, res, next) => {
+app.put("/api/art/:artid/title", requireAuth, async (req, res, next) => {
   try {
-    const { user } = await ensureActiveSession(req, res);
     const artid = parseInt(req.params.artid, 10);
     const { title } = req.body;
 
@@ -546,7 +520,7 @@ app.put("/api/art/:artid/title", async (req, res, next) => {
       return res.status(404).json({ error: "作品が見つかりません" });
     }
 
-    if (art.creatorid !== user.userid) {
+    if (art.creatorid !== req.user.userid) {
       return res.status(403).json({ error: "この作品を編集する権限がありません" });
     }
 
@@ -561,10 +535,9 @@ app.put("/api/art/:artid/title", async (req, res, next) => {
   }
 });
 
-app.get("/gallery", async (req, res, next) => {
+app.get("/gallery", requireAuth, async (req, res, next) => {
   try {
-    const { user } = await ensureActiveSession(req, res);
-    const artIds = await getUserGalleryArtIds(user);
+    const artIds = await getUserGalleryArtIds(req.user);
     if (artIds.length === 0) {
       return res.render("gallery", { arts: [] });
     }
@@ -1290,6 +1263,12 @@ app.post("/api/login", async (req, res, next) => {
     if (!match) {
       return res.status(401).json({ error: "invalid credentials" });
     }
+
+    const existingSessionId = req.signedCookies?.[SESSION_COOKIE];
+    if (existingSessionId) {
+      destroySession(res, existingSessionId);
+    }
+
     setSessionCookie(res, authInfo.user.userid);
     res.json({ message: "logged in", userid: authInfo.user.userid });
   } catch (error) {

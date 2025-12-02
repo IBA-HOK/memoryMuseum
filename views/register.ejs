@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>思い出美術館 | 新規登録</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .auth-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .auth-container {
+      width: 100%;
+      max-width: 400px;
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    .auth-title {
+      font-size: 28px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 30px;
+      color: #333;
+    }
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .form-group label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #555;
+    }
+    .form-group input {
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #577590;
+    }
+    .auth-button {
+      padding: 14px;
+      background: #577590;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .auth-button:hover {
+      background: #4d6680;
+    }
+    .auth-switch {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+      color: #666;
+    }
+    .auth-switch a {
+      color: #577590;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .auth-switch a:hover {
+      text-decoration: underline;
+    }
+    .error-message {
+      color: #f94144;
+      font-size: 14px;
+      text-align: center;
+      margin-top: 10px;
+      display: none;
+    }
+    .success-message {
+      color: #43aa8b;
+      font-size: 14px;
+      text-align: center;
+      margin-top: 10px;
+      display: none;
+    }
+    .password-hint {
+      font-size: 12px;
+      color: #888;
+      margin-top: -10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-screen">
+    <div class="auth-container">
+      <h1 class="auth-title">新規登録</h1>
+      <form class="auth-form" id="registerForm">
+        <div class="form-group">
+          <label for="username">ユーザー名</label>
+          <input type="text" id="username" name="username" required autocomplete="username" minlength="3" maxlength="20">
+          <div class="password-hint">3〜20文字で入力してください</div>
+        </div>
+        <div class="form-group">
+          <label for="password">パスワード</label>
+          <input type="password" id="password" name="password" required autocomplete="new-password" minlength="6">
+          <div class="password-hint">6文字以上で入力してください</div>
+        </div>
+        <div class="form-group">
+          <label for="passwordConfirm">パスワード（確認）</label>
+          <input type="password" id="passwordConfirm" name="passwordConfirm" required autocomplete="new-password" minlength="6">
+        </div>
+        <button type="submit" class="auth-button">登録</button>
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
+      </form>
+      <div class="auth-switch">
+        すでにアカウントをお持ちの方は <a href="/login">ログイン</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('registerForm');
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorMessage.style.display = 'none';
+      successMessage.style.display = 'none';
+
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const passwordConfirm = document.getElementById('passwordConfirm').value;
+
+      if (password !== passwordConfirm) {
+        errorMessage.textContent = 'パスワードが一致しません';
+        errorMessage.style.display = 'block';
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          successMessage.textContent = '登録が完了しました';
+          successMessage.style.display = 'block';
+          setTimeout(() => {
+            window.location.href = '/home';
+          }, 500);
+        } else {
+          errorMessage.textContent = data.error === 'username already exists' 
+            ? 'このユーザー名は既に使用されています' 
+            : data.error || '登録に失敗しました';
+          errorMessage.style.display = 'block';
+        }
+      } catch (error) {
+        errorMessage.textContent = '登録に失敗しました';
+        errorMessage.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
