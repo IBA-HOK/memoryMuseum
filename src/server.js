@@ -13,6 +13,7 @@ const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3000;
 const SESSION_SECRET = process.env.SESSION_SECRET || "memoryMuseumSecret";
 const SESSION_COOKIE = "session_id";
+const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 
 const VIEWS_DIR = path.join(__dirname, "..", "views");
 const STATIC_DIR = path.join(__dirname, "..", "public");
@@ -63,6 +64,39 @@ const QUICK_MODE_PALETTES = [
 ];
 
 const sessions = new Map();
+const sessionBlacklist = new Map();
+
+function cleanupSessionBlacklist() {
+  const now = Date.now();
+  for (const [sessionId, expiry] of sessionBlacklist) {
+    if (expiry <= now) {
+      sessionBlacklist.delete(sessionId);
+    }
+  }
+}
+
+function isSessionBlacklisted(sessionId) {
+  if (!sessionId) {
+    return false;
+  }
+  cleanupSessionBlacklist();
+  const expiry = sessionBlacklist.get(sessionId);
+  if (!expiry) {
+    return false;
+  }
+  if (expiry <= Date.now()) {
+    sessionBlacklist.delete(sessionId);
+    return false;
+  }
+  return true;
+}
+
+function blacklistSession(sessionId) {
+  if (!sessionId) {
+    return;
+  }
+  sessionBlacklist.set(sessionId, Date.now() + SESSION_TTL_MS);
+}
 
 if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
@@ -93,10 +127,11 @@ function createEmptyFlow() {
 function setSessionCookie(res, userid) {
   const sessionId = uuidv4();
   sessions.set(sessionId, { userid, createdAt: Date.now(), flow: createEmptyFlow() });
+  sessionBlacklist.delete(sessionId);
   res.cookie(SESSION_COOKIE, sessionId, {
     httpOnly: true,
     sameSite: "lax",
-    maxAge: 1000 * 60 * 60 * 24 * 7,
+    maxAge: SESSION_TTL_MS,
     signed: true,
   });
   return sessionId;
@@ -127,6 +162,12 @@ async function requireAuth(req, res, next) {
       return res.redirect('/login');
     }
     
+    if (isSessionBlacklisted(sessionId)) {
+      sessions.delete(sessionId);
+      res.clearCookie(SESSION_COOKIE);
+      return res.redirect('/login');
+    }
+
     const session = getSession(sessionId);
     if (!session) {
       res.clearCookie(SESSION_COOKIE);
@@ -331,25 +372,37 @@ function parseArtIdsString(value) {
 
 app.get("/", (req, res) => {
   const sessionId = req.signedCookies?.[SESSION_COOKIE];
-  if (sessionId && getSession(sessionId)) {
+  const blacklisted = isSessionBlacklisted(sessionId);
+  if (sessionId && !blacklisted && getSession(sessionId)) {
     res.redirect('/home');
   } else {
+    if (sessionId) {
+      res.clearCookie(SESSION_COOKIE);
+    }
     res.redirect('/login');
   }
 });
 
 app.get("/login", (req, res) => {
   const sessionId = req.signedCookies?.[SESSION_COOKIE];
-  if (sessionId && getSession(sessionId)) {
+  const blacklisted = isSessionBlacklisted(sessionId);
+  if (sessionId && !blacklisted && getSession(sessionId)) {
     return res.redirect('/home');
+  }
+  if (sessionId && blacklisted) {
+    res.clearCookie(SESSION_COOKIE);
   }
   res.render('login');
 });
 
 app.get("/register", (req, res) => {
   const sessionId = req.signedCookies?.[SESSION_COOKIE];
-  if (sessionId && getSession(sessionId)) {
+  const blacklisted = isSessionBlacklisted(sessionId);
+  if (sessionId && !blacklisted && getSession(sessionId)) {
     return res.redirect('/home');
+  }
+  if (sessionId && blacklisted) {
+    res.clearCookie(SESSION_COOKIE);
   }
   res.render('register');
 });
@@ -638,6 +691,7 @@ app.post("/api/login", async (req, res, next) => {
 });
 
 app.post("/api/logout", requireAuth, (req, res) => {
+  blacklistSession(req.sessionId);
   destroySession(res, req.sessionId);
   res.json({ message: "logged out" });
 });
@@ -1277,6 +1331,7 @@ app.post("/api/login", async (req, res, next) => {
 });
 
 app.post("/api/logout", requireAuth, (req, res) => {
+  blacklistSession(req.sessionId);
   destroySession(res, req.sessionId);
   res.json({ message: "logged out" });
 });
