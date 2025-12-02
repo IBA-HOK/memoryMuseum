@@ -5,10 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>思い出美術館 | ホーム</title>
   <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .home-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto 24px;
+    }
+
+    .logout-button {
+      padding: 10px 16px;
+      background: #f94144;
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .logout-button:hover {
+      background: #e03537;
+    }
+
+    .logout-error {
+      color: #f94144;
+      font-size: 14px;
+      text-align: center;
+      margin-bottom: 16px;
+      display: none;
+    }
+  </style>
 </head>
 <body>
   <div class="screen-container home-screen">
-    <div class="greeting">こんにちは、<%= username %>さん!</div>
+    <div class="home-header">
+      <div class="greeting">こんにちは、<%= username %>さん!</div>
+      <button id="logoutButton" class="logout-button" type="button">ログアウト</button>
+    </div>
+    <div id="logoutError" class="logout-error">ログアウトに失敗しました</div>
     <div class="sub-text">今日はどんな気分ですか?<br>ちょっとした一枚に描いてみましょう!</div>
     <div class="status-chips">
       <span class="chip">保存枚数: <%= artCount %> 枚</span>
@@ -16,5 +54,26 @@
     <a href="/gallery" class="menu-card">展示室</a>
     <a href="/atelier/mode" class="menu-card">アトリエ</a>
   </div>
+  <script>
+    const logoutButton = document.getElementById('logoutButton');
+    const logoutError = document.getElementById('logoutError');
+
+    if (logoutButton) {
+      logoutButton.addEventListener('click', async (event) => {
+        event.preventDefault();
+        logoutError.style.display = 'none';
+        try {
+          const response = await fetch('/api/logout', { method: 'POST' });
+          if (response.ok || response.status === 401) {
+            window.location.href = '/login';
+            return;
+          }
+        } catch (err) {
+          // fallthrough to show error
+        }
+        logoutError.style.display = 'block';
+      });
+    }
+  </script>
 </body>
 </html>
