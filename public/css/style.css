@@ -99,6 +99,9 @@ body {
 .home-screen {
   padding-top: 60px;
   text-align: center;
+
+  background-image: url('../img/home.png');
+  background-size: cover;
 }
 
 .greeting {
@@ -151,6 +154,9 @@ body {
   background-color: #444;
   justify-content: center;
   color: white;
+  
+  background-image: url('../img/mode-back.png');
+  background-size: cover;
 }
 
 .mode-circle {
@@ -679,6 +685,9 @@ body {
   align-items: stretch;
   overflow-y: auto;
   max-height: 100dvh;
+  
+  background-image: url('../img/gallery-back.png');
+  background-size: cover;
 }
 
 .gallery-screen h2 {
