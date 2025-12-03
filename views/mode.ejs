@@ -6,16 +6,51 @@
   <title>思い出美術館 | モード選択</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
+
+<style>
+    /* 背景画像 */
+    body {
+      margin: 0;
+      background-image: url('/images/mode-change.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      font-family: 'Hiragino Sans', sans-serif;
+    }
+
+    /* ボタン画像 */
+    .mode-btn {
+      width: 270px;
+      display: block;
+      margin: 20px auto;
+    }
+
+    .mode-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-top: 80px;
+    }
+
+    .divider-or {
+      font-size: 28px;
+      font-weight: bold;
+      margin: 20px 0;
+      color: #fff;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+
 <body>
   <div class="screen-container mode-screen">
-    <a href="/atelier/canvas?mode=slow" class="mode-circle mode-slow">
-      <div class="mode-title">じっくり<br>モード</div>
-      <div class="mode-desc">じっくり丁寧に描こう</div>
+    <a href="/atelier/canvas?mode=slow">
+      <img src="/images/jikkuri-btn.png" alt="じっくりモード" class="mode-btn">
     </a>
     <div class="divider-or">OR</div>
-    <a href="/atelier/canvas?mode=quick" class="mode-circle mode-quick">
-      <div class="mode-title">サクッと<br>モード</div>
-      <div class="mode-desc">サクッと短く描こう</div>
+    <a href="/atelier/canvas?mode=quick">
+      <img src="/images/sakutto-btn.png" alt="サクッとモード" class="mode-btn">
     </a>
   </div>
 </body>
