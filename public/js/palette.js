@@ -98,16 +98,6 @@ document.addEventListener("DOMContentLoaded", () => {
   renderSelectedChips();
   syncHiddenInput();
 
-  if (!data.autoSelected) {
-    grid.addEventListener("click", (event) => {
-      const button = event.target.closest(".color-cell");
-      if (!button) return;
-      const color = button.dataset.color;
-      if (!color) return;
-      toggleColor(color);
-    });
-  }
-
   if (data.autoSelected && submitBtn) {
     submitBtn.disabled = false;
   }
