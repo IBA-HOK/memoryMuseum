@@ -22,6 +22,10 @@ body {
   align-items: center;
 }
 
+.screen-container.home-screen {
+  background-color: transparent;
+}
+
 .full-screen {
   height: 100dvh;
   justify-content: center;
@@ -104,6 +108,9 @@ body {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+
+  background-color: transparent;   /* ← 白を無効化 */
+  min-height: 100dvh;
 }
 
 .greeting {
