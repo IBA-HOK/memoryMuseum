@@ -161,6 +161,14 @@
       if (target) {
         target.classList.add('selected');
       }
+      
+      // じっくりモードで無色の図形をタップしたら自動でカラーパレットを開く
+      if (isSlowMode) {
+        const spec = currentPalette[state.selectedPaletteIndex];
+        if (spec && !spec.color) {
+          openColorModal();
+        }
+      }
     }
     updateKeepButton();
   }
