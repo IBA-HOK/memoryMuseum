@@ -55,8 +55,8 @@
 </head>
 <body>
   <div class="screen-container complete-screen">
-    <h2>完成しました！</h2>
-    <p>本日の一枚が保存されました。</p>
+    <h2>今日の絵が完成しました！</h2>
+    <p>新たな絵が展示室に飾られました。<br>今日も一日お疲れ様でした！</p>
     <% if (art) { %>
       <div class="complete-art">
         <img src="<%= art.path %>" alt="保存された作品" loading="lazy">
@@ -83,7 +83,9 @@
       <p class="complete-note">最新の作品情報が見つかりませんでした。</p>
     <% } %>
     <div class="complete-actions">
-      <a href="/gallery" class="btn-primary">展示室へ</a>
+      <a href="/gallery" class="btn-primary">
+        <img src="/images/gallery-btn2.png" alt="展示室へ" style="width:100%; height:100%;">
+      </a>
       <a href="/atelier/mode" class="btn-secondary">もう一度描く</a>
       <a href="/home" class="btn-link">ホームに戻る</a>
     </div>

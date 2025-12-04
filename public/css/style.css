@@ -154,7 +154,6 @@ body {
   background-color: #444;
   justify-content: center;
   color: white;
-
   background-image: url('../images/mode-back.png');
   background-size: cover;
 }
@@ -685,7 +684,6 @@ body {
   align-items: stretch;
   overflow-y: auto;
   max-height: 100dvh;
-
   background-image: url('../images/gallery-back.png');
   background-size: cover;
 }
