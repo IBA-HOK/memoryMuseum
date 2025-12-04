@@ -358,6 +358,17 @@ body {
   align-items: center;
 }
 
+.palette-screen.quick {
+  background-image: url('../images/draw-quick-back.png');
+  background-size: cover;
+}
+
+.palette-screen.slow {
+  background-image: url('../images/draw-slow-back.png');
+  background-size: cover;
+  background-position: center;
+}
+
 .draw-screen {
   background-color: #a89f91;
   padding: 20px 0 30px;
