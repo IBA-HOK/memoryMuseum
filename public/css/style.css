@@ -229,9 +229,18 @@ body {
 
 .select-screen {
   justify-content: center;
-  background-color: #333;
   color: white;
   padding: 20px;
+}
+
+.select-screen.quick {
+  background-image: url('../images/canvas-quick-back.png');
+  background-size: cover;
+}
+
+.select-screen.slow {
+  background-image: url('../images/canvas-slow-back.png');
+  background-size: cover;
 }
 
 .prompt-text {
