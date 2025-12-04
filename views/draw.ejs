@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <div class="screen-container draw-screen-v2" data-shape="<%= shape %>" data-mode="<%= mode %>" data-colors='<%- JSON.stringify(colors) %>'>
+  <div class="screen-container draw-screen-v2 <%= mode === 'slow' ? 'draw-screen-slow' : '' %>" data-shape="<%= shape %>" data-mode="<%= mode %>" data-colors='<%- JSON.stringify(colors) %>' data-color-pool='<%- JSON.stringify(colorPool) %>'>
     <div class="draw-header">
       <span><%= mode === "slow" ? "じっくりモード" : "サクッとモード" %></span>
       <span><%= username %> さん</span>
@@ -33,6 +33,20 @@
       <button type="button" id="regen-btn" class="btn-secondary">パレット再生成</button>
       <button type="button" id="complete-btn" class="btn-primary">完成</button>
     </div>
+
+    <% if (mode === "slow") { %>
+    <button type="button" id="color-picker-btn" class="floating-color-btn" aria-haspopup="dialog" aria-controls="color-modal" aria-label="色を選ぶ">🎨</button>
+    <div id="color-modal" class="color-modal" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="color-modal__backdrop" data-dismiss="color-modal"></div>
+      <div class="color-modal__panel">
+        <div class="color-modal__header">
+          <span>色を選ぶ</span>
+          <button type="button" id="color-modal-close" class="color-modal__close" aria-label="閉じる">閉じる</button>
+        </div>
+        <div id="color-modal-grid" class="color-modal__grid"></div>
+      </div>
+    </div>
+    <% } %>
 
     <div id="size-control" class="size-control">
       <label for="size-slider">サイズ</label>

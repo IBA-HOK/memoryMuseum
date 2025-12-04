@@ -27,14 +27,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (state.selected.length === 0) {
       const p = document.createElement("p");
       p.className = "selected-chip";
-      p.textContent = data.autoSelected
-        ? "サクッとモードで自動選択された5色が適用されます"
-        : "色を5つ選択してください";
+      p.textContent = "色を5つ選択してください";
       info.appendChild(p);
       if (submitBtn) {
-        submitBtn.disabled = !data.autoSelected;
+        submitBtn.disabled = true;
       }
       return;
+    }
+
+    if (data.autoSelected) {
+      const hint = document.createElement("p");
+      hint.className = "selected-chip";
+      hint.textContent = "タップして色を入れ替えできます";
+      info.appendChild(hint);
     }
     state.selected.forEach((color, idx) => {
       const chip = document.createElement("div");
@@ -85,9 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
       label.textContent = idx + 1;
       cell.appendChild(label);
 
-      if (!data.autoSelected) {
-        cell.addEventListener("click", () => toggleColor(color));
-      }
+      cell.addEventListener("click", () => toggleColor(color));
 
       grid.appendChild(cell);
     });
@@ -98,7 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderSelectedChips();
   syncHiddenInput();
 
-  if (data.autoSelected && submitBtn) {
-    submitBtn.disabled = false;
+  if (submitBtn) {
+    submitBtn.disabled = state.selected.length !== maxColors;
   }
 });

@@ -13,6 +13,18 @@
     }
   })();
 
+  const colorPool = (() => {
+    try {
+      const parsed = JSON.parse(container.dataset.colorPool || "[]");
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (_) {
+      return [];
+    }
+  })();
+
+  const isSlowMode = mode === "slow";
+  const NEUTRAL_SHAPE_COLOR = "#d0ccc4";
+
   const canvasArea = document.getElementById("canvas-area");
   const palette = document.getElementById("shape-palette");
   const undoBtn = document.getElementById("undo-btn");
@@ -24,6 +36,10 @@
   const sizeSlider = document.getElementById("size-slider");
   const sizeValue = document.getElementById("size-value");
   const statusEl = document.getElementById("save-status");
+  const colorPickerBtn = document.getElementById("color-picker-btn");
+  const colorModal = document.getElementById("color-modal");
+  const colorModalGrid = document.getElementById("color-modal-grid");
+  const colorModalClose = document.getElementById("color-modal-close");
 
   let state = {
     placed: [],
@@ -31,9 +47,17 @@
     suppressNextDeselect: false,
     selectedPaletteIndex: null,
     keptShapes: [], // {type, size, color}
+    activePaintColor: null,
   };
   let idCounter = 1;
   let currentPalette = []; // {type, size, color, kept: boolean}
+  let colorModalLastFocus = null;
+
+  if (isSlowMode) {
+    state.activePaintColor = null;
+  } else if (userColors.length > 0) {
+    state.activePaintColor = userColors[0];
+  }
 
   const SHAPE_TYPES = ['circle', 'square', 'triangle', 'hexagon'];
   const MAX_PALETTE_SIZE = 8;
@@ -51,6 +75,7 @@
   }
 
   function randomColorFromPalette() {
+    if (isSlowMode) return null;
     if (userColors.length === 0) return '#999';
     return userColors[randomInt(0, userColors.length - 1)];
   }
@@ -69,10 +94,11 @@
         kept: false
       });
     }
-    
-    renderPalette();
+
     state.selectedPaletteIndex = null;
+    renderPalette();
     updateKeepButton();
+    syncKeptShapesFromPalette();
   }
 
   function renderPalette() {
@@ -82,6 +108,9 @@
       swatch.className = 'shape-swatch';
       if (shapeSpec.kept) {
         swatch.classList.add('kept');
+      }
+      if (state.selectedPaletteIndex === index) {
+        swatch.classList.add('selected');
       }
       swatch.dataset.index = index;
 
@@ -114,25 +143,42 @@
     });
   }
 
+  function syncKeptShapesFromPalette() {
+    state.keptShapes = currentPalette
+      .filter((spec) => spec.kept)
+      .map((spec) => ({ type: spec.type, size: spec.size, color: spec.color }));
+  }
+
   function selectPaletteSwatch(index) {
     if (state.selectedPaletteIndex === index) {
       state.selectedPaletteIndex = null;
     } else {
       state.selectedPaletteIndex = index;
     }
+    palette.querySelectorAll('.shape-swatch').forEach((el) => el.classList.remove('selected'));
+    if (state.selectedPaletteIndex !== null) {
+      const target = palette.querySelector(`.shape-swatch[data-index="${state.selectedPaletteIndex}"]`);
+      if (target) {
+        target.classList.add('selected');
+      }
+    }
     updateKeepButton();
   }
 
   function updateKeepButton() {
-    if (state.selectedPaletteIndex !== null && !currentPalette[state.selectedPaletteIndex].kept) {
-      keepBtn.disabled = false;
-      keepBtn.textContent = 'キープ';
-    } else if (state.selectedPaletteIndex !== null && currentPalette[state.selectedPaletteIndex].kept) {
-      keepBtn.disabled = false;
-      keepBtn.textContent = '解除';
-    } else {
+    const selectedSpec = state.selectedPaletteIndex !== null ? currentPalette[state.selectedPaletteIndex] : null;
+    if (!selectedSpec) {
       keepBtn.disabled = true;
       keepBtn.textContent = 'キープ';
+      return;
+    }
+
+    if (!selectedSpec.kept) {
+      keepBtn.disabled = false;
+      keepBtn.textContent = 'キープ';
+    } else {
+      keepBtn.disabled = false;
+      keepBtn.textContent = '解除';
     }
   }
 
@@ -161,29 +207,155 @@
     }
 
     renderPalette();
+    syncKeptShapesFromPalette();
     state.selectedPaletteIndex = null;
     updateKeepButton();
   }
 
+  function applyColorToPlacedShape(shapeId, color) {
+    const shape = state.placed.find((s) => s.id === shapeId);
+    if (!shape || shape.locked) return false;
+    shape.color = color;
+    const el = canvasArea.querySelector(`.placed-shape[data-id="${shape.id}"]`);
+    if (el) {
+      el.innerHTML = renderShapeSVG(shape.type, shape.w, shape.h, shape.color);
+    }
+    return true;
+  }
+
+  function handleColorSelection(color) {
+    let applied = false;
+
+    if (state.selectedPaletteIndex !== null) {
+      const spec = currentPalette[state.selectedPaletteIndex];
+      if (spec) {
+        spec.color = color;
+        applied = true;
+        const swatch = palette.querySelector(`.shape-swatch[data-index="${state.selectedPaletteIndex}"]`);
+        if (swatch) {
+          const preview = swatch.querySelector('.shape-preview');
+          if (preview) {
+            preview.innerHTML = renderShapeSVG(spec.type, spec.size, spec.size, spec.color);
+          }
+        }
+        syncKeptShapesFromPalette();
+        updateKeepButton();
+      }
+    }
+
+    if (!applied && state.selectedId) {
+      applied = applyColorToPlacedShape(state.selectedId, color);
+    }
+
+    state.activePaintColor = color;
+    closeColorModal();
+  }
+
+  function buildColorModalGrid() {
+    if (!colorModalGrid) return;
+    const paletteSource = colorPool.length > 0 ? colorPool : userColors;
+    const swatches = paletteSource.length > 0 ? paletteSource : [NEUTRAL_SHAPE_COLOR];
+    colorModalGrid.innerHTML = '';
+    swatches.forEach((color) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'color-modal__swatch';
+      button.style.backgroundColor = color;
+      button.setAttribute('aria-label', color);
+      if (state.activePaintColor === color) {
+        button.classList.add('active');
+      }
+      button.addEventListener('click', () => handleColorSelection(color));
+      colorModalGrid.appendChild(button);
+    });
+  }
+
+  function handleColorModalKeydown(event) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeColorModal();
+    }
+  }
+
+  function openColorModal() {
+    if (!colorModal) return;
+    buildColorModalGrid();
+    colorModalLastFocus = colorPickerBtn || document.activeElement;
+    colorModal.classList.add('is-open');
+    colorModal.setAttribute('aria-hidden', 'false');
+    document.addEventListener('keydown', handleColorModalKeydown);
+    const firstButton = colorModal.querySelector('button');
+    if (firstButton) {
+      firstButton.focus();
+    }
+  }
+
+  function closeColorModal() {
+    if (!colorModal) return;
+    colorModal.classList.remove('is-open');
+    colorModal.setAttribute('aria-hidden', 'true');
+    document.removeEventListener('keydown', handleColorModalKeydown);
+    if (colorModalLastFocus && typeof colorModalLastFocus.focus === 'function') {
+      try {
+        colorModalLastFocus.focus();
+      } catch (_) {
+        /* ignore focus errors */
+      }
+    }
+    colorModalLastFocus = null;
+  }
+
+  function setupColorModal() {
+    if (!colorPickerBtn || !colorModal) {
+      return;
+    }
+    if (!isSlowMode) {
+      colorModal.remove();
+      colorPickerBtn.remove();
+      return;
+    }
+    colorPickerBtn.addEventListener('click', openColorModal);
+    if (colorModalClose) {
+      colorModalClose.addEventListener('click', closeColorModal);
+    }
+    colorModal.addEventListener('click', (event) => {
+      if (event.target && event.target.dataset && event.target.dataset.dismiss === 'color-modal') {
+        closeColorModal();
+      }
+    });
+  }
+
   function renderShapeSVG(type, w, h, color) {
+    const hasColor = Boolean(color);
+    const fill = hasColor ? color : 'none';
+    const strokeAttrs = hasColor ? '' : ' stroke="#b8b3aa" stroke-width="3"';
+
     if (type === 'circle') {
       const r = Math.min(w, h) / 2;
-      return `<svg width="${w}" height="${h}"><circle cx="${w/2}" cy="${h/2}" r="${r}" fill="${color}"/></svg>`;
-    } else if (type === 'square') {
-      return `<svg width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="${color}"/></svg>`;
-    } else if (type === 'triangle') {
-      const pts = `${w/2},0 ${w},${h} 0,${h}`;
-      return `<svg width="${w}" height="${h}"><polygon points="${pts}" fill="${color}"/></svg>`;
-    } else if (type === 'hexagon') {
+      return `<svg width="${w}" height="${h}"><circle cx="${w / 2}" cy="${h / 2}" r="${r}" fill="${fill}"${strokeAttrs}/></svg>`;
+    }
+
+    if (type === 'square') {
+      return `<svg width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="${fill}"${strokeAttrs}/></svg>`;
+    }
+
+    if (type === 'triangle') {
+      const pts = `${w / 2},0 ${w},${h} 0,${h}`;
+      return `<svg width="${w}" height="${h}"><polygon points="${pts}" fill="${fill}"${strokeAttrs}/></svg>`;
+    }
+
+    if (type === 'hexagon') {
       const r = w / 2;
-      const cx = r, cy = r;
-      let pts = [];
+      const cx = r;
+      const cy = r;
+      const pts = [];
       for (let k = 0; k < 6; k++) {
         const ang = Math.PI / 3 * k - Math.PI / 6;
         pts.push([cx + r * Math.cos(ang), cy + r * Math.sin(ang)].join(','));
       }
-      return `<svg width="${w}" height="${h}"><polygon points="${pts.join(' ')}" fill="${color}"/></svg>`;
+      return `<svg width="${w}" height="${h}"><polygon points="${pts.join(' ')}" fill="${fill}"${strokeAttrs}/></svg>`;
     }
+
     return '';
   }
 
@@ -298,8 +470,12 @@
       }
     });
 
+    const resolvedColor = spec.color != null
+      ? spec.color
+      : (isSlowMode ? (state.activePaintColor || NEUTRAL_SHAPE_COLOR) : NEUTRAL_SHAPE_COLOR);
+
     const id = idCounter++;
-    const shape = { id, type: spec.type, color: spec.color, w, h, x, y, locked: false };
+    const shape = { id, type: spec.type, color: resolvedColor, w, h, x, y, locked: false };
     state.placed.push(shape);
     renderPlacedShape(shape);
     state.suppressNextDeselect = true;
@@ -512,16 +688,17 @@
       state.placed.forEach(s => {
         ctx.save();
         ctx.translate(s.x, s.y);
+        const fillColor = s.color || NEUTRAL_SHAPE_COLOR;
         if (s.type === 'circle') {
-          ctx.fillStyle = s.color;
+          ctx.fillStyle = fillColor;
           ctx.beginPath();
           ctx.arc(s.w / 2, s.h / 2, Math.min(s.w, s.h) / 2, 0, Math.PI * 2);
           ctx.fill();
         } else if (s.type === 'square') {
-          ctx.fillStyle = s.color;
+          ctx.fillStyle = fillColor;
           ctx.fillRect(0, 0, s.w, s.h);
         } else if (s.type === 'triangle') {
-          ctx.fillStyle = s.color;
+          ctx.fillStyle = fillColor;
           ctx.beginPath();
           ctx.moveTo(s.w / 2, 0);
           ctx.lineTo(s.w, s.h);
@@ -529,7 +706,7 @@
           ctx.closePath();
           ctx.fill();
         } else if (s.type === 'hexagon') {
-          ctx.fillStyle = s.color;
+          ctx.fillStyle = fillColor;
           ctx.beginPath();
           const r = s.w / 2;
           const cx = r, cy = r;
@@ -581,11 +758,15 @@
 
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.shape-swatch') && !e.target.closest('#keep-btn')) {
+      if (e.target.closest('.color-modal__panel') || e.target.closest('#color-picker-btn')) {
+        return;
+      }
       state.selectedPaletteIndex = null;
       updateKeepButton();
     }
   });
 
+  setupColorModal();
   generatePalette(8);
   if (statusEl) statusEl.textContent = mode === "quick" ? "図形をドラッグして配置してみましょう！" : "じっくり図形を組み合わせてみましょう。";
 })();
