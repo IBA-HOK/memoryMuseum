@@ -100,7 +100,7 @@ body {
   padding-top: 60px;
   text-align: center;
   
-  background-image: url('../img/home.png');
+  background-image: url('../images/home.png');
   background-size: cover;
 }
 
@@ -155,7 +155,7 @@ body {
   justify-content: center;
   color: white;
 
-  background-image: url('../img/mode-back.png');
+  background-image: url('../images/mode-back.png');
   background-size: cover;
 }
 
@@ -686,7 +686,7 @@ body {
   overflow-y: auto;
   max-height: 100dvh;
 
-  background-image: url('../img/gallery-back.png');
+  background-image: url('../images/gallery-back.png');
   background-size: cover;
 }
 
