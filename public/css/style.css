@@ -227,20 +227,20 @@ body {
   z-index: 10;
 }
 
-.select-screen {
+.select-screen.quick {
   justify-content: center;
+  background-image: url('../images/canvas-quick-back.png');
+  background-size: cover;
   color: white;
   padding: 20px;
 }
 
-.select-screen.quick {
-  background-image: url('../images/canvas-quick-back.png');
-  background-size: cover;
-}
-
 .select-screen.slow {
+  justify-content: center;
   background-image: url('../images/canvas-slow-back.png');
   background-size: cover;
+  color: white;
+  padding: 20px;
 }
 
 .prompt-text {
