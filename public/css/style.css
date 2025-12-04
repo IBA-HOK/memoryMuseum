@@ -683,20 +683,18 @@ body {
     position: fixed;
   }
 }
-
-.complete-screen.quick {
-  background-image: url('../images/complete-quick-back.png');
-  background-size: cover;
+.complete-screen {
   padding: 40px 20px;
   text-align: center;
   gap: 16px;
 }
+.complete-screen.quick {
+  background-image: url('../images/complete-quick-back.png');
+  background-size: cover;
+}
 .complete-screen.slow {
   background-image: url('../images/complete-slow-back.png');
   background-size: cover;
-  padding: 40px 20px;
-  text-align: center;
-  gap: 16px;
 }
 
 .complete-screen h2 {
