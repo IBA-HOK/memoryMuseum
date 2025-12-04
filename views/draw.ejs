@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <div class="screen-container draw-screen-v2" data-shape="<%= shape %>" data-mode="<%= mode %>" data-colors='<%- JSON.stringify(colors) %>'>
+  <div class="screen-container draw-screen-v2 <%= mode %>" data-shape="<%= shape %>" data-mode="<%= mode %>" data-colors='<%- JSON.stringify(colors) %>'>
     <div class="draw-header">
       <span><%= mode === "slow" ? "じっくりモード" : "サクッとモード" %></span>
       <span><%= username %> さん</span>
