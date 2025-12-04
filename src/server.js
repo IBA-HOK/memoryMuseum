@@ -463,6 +463,11 @@ app.get("/atelier/palette", requireAuth, async (req, res, next) => {
     }
     flow.shape = shapeParam;
 
+    if (flow.mode === "slow") {
+      flow.colors = [];
+      return res.redirect(`/atelier/draw?shape=${shapeParam}`);
+    }
+
     if (flow.mode === "quick") {
       if (!flow.colors || flow.colors.length !== 5) {
         flow.colors = selectQuickPalette();
@@ -509,18 +514,23 @@ app.get("/atelier/draw", requireAuth, async (req, res, next) => {
     }
 
     const colorsFromQuery = parseColorList(req.query.colors);
-    if (colorsFromQuery.length === 5) {
-      flow.colors = colorsFromQuery;
-    }
+    if (flow.mode === "quick") {
+      if (colorsFromQuery.length === 5) {
+        flow.colors = colorsFromQuery;
+      }
 
-    if (!flow.colors || flow.colors.length !== 5) {
-      return res.redirect("/atelier/palette");
+      if (!flow.colors || flow.colors.length !== 5) {
+        return res.redirect("/atelier/palette");
+      }
+    } else {
+      flow.colors = Array.isArray(flow.colors) ? flow.colors : [];
     }
 
     res.render("draw", {
       mode: flow.mode,
       shape: flow.shape,
       colors: flow.colors,
+      colorPool: COLOR_POOL,
       username: req.user.authinfo.userdecidedid,
     });
   } catch (error) {
@@ -714,7 +724,7 @@ app.post("/api/save", requireAuth, async (req, res, next) => {
       return res.status(400).json({ error: "shape is required" });
     }
     const colorsArray = parseColorList(colors);
-    if (colorsArray.length !== 5) {
+    if (mode === "quick" && colorsArray.length !== 5) {
       return res.status(400).json({ error: "exactly 5 colors are required" });
     }
 

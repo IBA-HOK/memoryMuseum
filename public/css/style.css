@@ -363,6 +363,11 @@ body {
   height: 100dvh;
   max-height: 100dvh;
   touch-action: pan-y;
+  position: relative;
+}
+
+.draw-screen-slow {
+  padding-bottom: 140px;
 }
 
 .draw-header {
@@ -604,6 +609,11 @@ body {
   outline-offset: -3px;
 }
 
+.shape-swatch.selected {
+  outline: 3px solid #fff7d1;
+  outline-offset: -3px;
+}
+
 .shape-preview {
   display: flex;
   align-items: center;
@@ -634,6 +644,127 @@ body {
   justify-content: center;
   gap: 12px;
   flex-shrink: 0;
+}
+
+.floating-color-btn {
+  position: fixed;
+  bottom: 16px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  color: #8c7b75;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  z-index: 900;
+}
+
+.floating-color-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+}
+
+.floating-color-btn:focus-visible {
+  outline: 3px solid #fff7d1;
+  outline-offset: 3px;
+}
+
+.color-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1500;
+}
+
+.color-modal.is-open {
+  display: flex;
+}
+
+.color-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.color-modal__panel {
+  position: relative;
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+  width: min(320px, 90vw);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 1;
+}
+
+.color-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  color: #4a4a4a;
+}
+
+.color-modal__close {
+  background: none;
+  border: none;
+  color: #4a4a4a;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.color-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 12px;
+}
+
+.color-modal__swatch {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.color-modal__swatch:hover,
+.color-modal__swatch:focus-visible {
+  transform: translateY(-2px);
+  border-color: #8c7b75;
+  outline: none;
+}
+
+.color-modal__swatch.active {
+  border-color: #d4af37;
+  transform: translateY(-3px);
+}
+
+@media (max-width: 540px) {
+  .floating-color-btn {
+    bottom: 16px;
+    right: 16px;
+    width: 52px;
+    height: 52px;
+    font-size: 22px;
+  }
+
+  .color-modal__panel {
+    width: min(360px, 92vw);
+    padding: 16px;
+  }
 }
 
 .size-control {
