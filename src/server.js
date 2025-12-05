@@ -480,9 +480,7 @@ app.get("/atelier/palette", requireAuth, async (req, res, next) => {
     }
 
     if (flow.mode === "quick") {
-      if (!flow.colors || flow.colors.length !== 5) {
-        flow.colors = selectQuickPalette();
-      }
+      flow.colors = selectQuickPalette();
       return res.render("palette", {
         mode: flow.mode,
         shape: flow.shape,
