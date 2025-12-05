@@ -854,7 +854,7 @@ body {
 .quick-color-bar {
   width: 100%;
   padding: 12px 20px 18px;
-  display: flex;
+  display: none;
   justify-content: center;
   gap: 14px;
   background: rgba(255, 255, 255, 0.92);
@@ -865,6 +865,10 @@ body {
   flex-shrink: 0;
   z-index: 600;
   align-self: stretch;
+}
+
+.quick-color-bar.visible {
+  display: flex;
 }
 
 .quick-color-swatch {

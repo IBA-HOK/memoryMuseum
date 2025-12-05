@@ -174,12 +174,8 @@
       button.setAttribute('aria-label', color);
       button.setAttribute('aria-pressed', 'false');
       button.addEventListener('click', () => {
-        // Toggle behavior: if same color clicked again, clear active color
-        if (normalizeColor(state.activePaintColor) === normalizeColor(color)) {
-          setActivePaintColor(null);
-        } else {
-          handleColorSelection(color);
-        }
+        // Select color (no toggle behavior)
+        handleColorSelection(color);
       });
       quickColorPalette.appendChild(button);
     });
@@ -293,6 +289,16 @@
           openColorModal();
         }
       }
+      
+      // サクッとモードで図形を選択したらカラーパレットを表示
+      if (isQuickMode && quickColorPalette) {
+        quickColorPalette.classList.add('visible');
+      }
+    } else {
+      // 図形の選択を解除したらカラーパレットを非表示
+      if (isQuickMode && quickColorPalette) {
+        quickColorPalette.classList.remove('visible');
+      }
     }
     updateKeepButton();
   }
@@ -381,6 +387,16 @@
 
     setActivePaintColor(color);
     closeColorModal();
+    
+    // サクッとモードで色を選択したらカラーパレットを隠す
+    if (isQuickMode && quickColorPalette) {
+      quickColorPalette.classList.remove('visible');
+    }
+    
+    // 色を選択したら図形の選択を解除
+    state.selectedPaletteIndex = null;
+    palette.querySelectorAll('.shape-swatch').forEach((el) => el.classList.remove('selected'));
+    updateKeepButton();
   }
 
   function buildColorModalGrid() {
@@ -949,6 +965,10 @@
       }
       state.selectedPaletteIndex = null;
       updateKeepButton();
+      // サクッとモードでカラーパレットを非表示
+      if (isQuickMode && quickColorPalette) {
+        quickColorPalette.classList.remove('visible');
+      }
     }
   });
 
