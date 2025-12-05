@@ -355,9 +355,12 @@ body {
   width: 100%;
   padding: 10px 20px;
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, auto);
+  gap: 8px;
   align-items: center;
+  justify-items: center;
 }
 
 .selected-chip {
@@ -369,8 +372,8 @@ body {
   background-color: rgba(0, 0, 0, 0.08);
   font-size: 12px;
   width: 100%;
-  max-width: 120px;
-  margin-bottom: 4px;
+  max-width: none;
+  margin-bottom: 0;
   cursor: pointer;
   box-sizing: border-box;
   border: 2px solid transparent;
@@ -403,6 +406,98 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+/* ===== Responsive fixes for palette/color selection ===== */
+/* Keep layout columnar and allow the central grid to scroll while
+   keeping the action button ('決定して描く') visible above
+   browser UI (tab bars) using safe-area insets. */
+.color-screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* allow children to shrink inside flex container */
+  /* reserve space at the bottom for the action bar and mobile UI */
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 16px));
+}
+
+/* Make the color grid take remaining space and be scrollable */
+.color-grid {
+  flex: 1 1 auto;
+  min-height: 0; /* required so flex child can scroll on iOS/Chrome */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.selected-colors-info,
+.image-upload-section,
+.header-text {
+  flex-shrink: 0;
+}
+
+/* Stick the form (決定して描く) to the bottom of the scroll container
+   so it's always reachable. Use safe-area fallback for older browsers. */
+.palette-form {
+  position: sticky;
+  bottom: calc(env(safe-area-inset-bottom, 12px) + 8px);
+  padding: 10px 20px 6px;
+  background: linear-gradient(transparent, rgba(255,255,255,0.95));
+  z-index: 700;
+  width: 100%;
+  box-sizing: border-box;
+  align-items: center;
+}
+
+.palette-form .btn-primary {
+  width: 100%;
+  max-width: 360px;
+}
+
+/* Reduce grid density on narrow screens so vertical length is more reasonable */
+@media (max-width: 420px), (max-height: 640px) {
+  .color-grid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    padding: 16px;
+  }
+}
+
+/* Further reduce grid columns and padding for very short screens to fit everything */
+@media (max-height: 560px) {
+  .color-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    padding: 12px;
+  }
+  .color-screen {
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 16px));
+  }
+}
+
+/* For extremely short screens, minimize further */
+@media (max-height: 480px) {
+  .color-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3px;
+    padding: 8px;
+  }
+  .color-screen {
+    padding-bottom: calc(50px + env(safe-area-inset-bottom, 16px));
+  }
+  .palette-form .btn-primary {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+}
+
+/* Respect mobile browser chrome/tab bars for floating buttons */
+.floating-color-btn {
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Quick color bar and other sticky footers should also account for safe area */
+.quick-color-bar,
+.toolbar {
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
 }
 
 .draw-screen {
