@@ -179,7 +179,6 @@ body {
 }
 
 .mode-screen {
-  background-color: #444;
   justify-content: space-evenly;
   color: white;
   background-image: url('../images/mode-back.png');
@@ -233,9 +232,17 @@ body {
 
 .select-screen {
   justify-content: center;
-  background-color: #333;
   color: white;
   padding: 20px;
+}
+
+.select-screen.quick {
+  background-image: url('../images/canvas-quick-back.png');
+  background-size: cover;
+}
+.select-screen.slow {
+  background-image: url('../images/canvas-slow-back.png');
+  background-size: cover;
 }
 
 .prompt-text {
@@ -277,10 +284,17 @@ body {
 }
 
 .color-screen {
-  background-color: #d8d0c0;
   padding-bottom: 30px;
   overflow-y: auto;
   max-height: 100svh;
+}
+.color-screen.quick {
+  background-image: url('../images/draw-quick-back.png');
+  background-size: cover;
+}
+.color-screen.slow {
+  background-image: url('../images/draw-slow-back.png');
+  background-size: cover;
 }
 
 .header-text {
@@ -359,7 +373,6 @@ body {
 }
 
 .draw-screen-v2 {
-  background-color: #a89f91;
   padding: 0;
   justify-content: flex-start;
   align-items: center;
@@ -376,6 +389,14 @@ body {
 
 .draw-screen-quick {
   padding-bottom: 120px;
+}
+.draw-screen-v2.quick {
+  background-image: url('../images/draw-quick-back.png');
+  background-size: cover;
+}
+.draw-screen-v2.slow {
+  background-image: url('../images/draw-slow-back.png');
+  background-size: cover;
 }
 
 .draw-header {
@@ -843,13 +864,20 @@ body {
     position: fixed;
   }
 }
-
 .complete-screen {
   padding: 16px 20px 20px;
   text-align: center;
   gap: 10px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+.complete-screen.quick {
+  background-image: url('../images/complete-quick-back.png');
+  background-size: cover;
+}
+.complete-screen.slow {
+  background-image: url('../images/complete-slow-back.png');
+  background-size: cover;
 }
 
 .complete-screen h2 {
