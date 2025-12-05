@@ -313,6 +313,27 @@ body {
   background-size: cover;
 }
 
+.color-screen .btn-primary {
+  padding: 14px 20px;
+  background: linear-gradient(90deg, #6a11cb, #2575fc);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: inline-block;
+  text-align: center;
+  width: 100%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.color-screen .btn-primary:hover {
+  background: linear-gradient(90deg, #5a0fbf, #1f6ed4);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
 .header-text {
   width: 100%;
   padding: 15px;
