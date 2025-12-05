@@ -698,6 +698,7 @@ body {
   align-items: center;
   justify-content: center;
   transition: transform 0.1s ease;
+  overflow: visible;
 }
 
 .placed-shape.selected {
@@ -714,6 +715,9 @@ body {
   width: 100%;
   height: 100%;
   display: block;
+  overflow: visible; /* allow rotated parts to be visible outside the SVG viewport */
+  transform-box: fill-box; /* useful if CSS transforms are used */
+  transform-origin: center center;
 }
 
 .palette-section {
@@ -1005,6 +1009,7 @@ body {
 .size-control {
   position: fixed;
   display: none;
+  flex-direction: column;
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
@@ -1018,6 +1023,19 @@ body {
 
 .size-control input[type="range"] {
   width: 120px;
+}
+
+.rotation-control,
+.size-control-inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.value-display {
+  width: 35px;
+  text-align: right;
+  display: inline-block;
 }
 
 @media (max-width: 540px) {
