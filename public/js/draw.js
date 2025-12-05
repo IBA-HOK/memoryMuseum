@@ -85,6 +85,8 @@
   const sizeControl = document.getElementById("size-control");
   const sizeSlider = document.getElementById("size-slider");
   const sizeValue = document.getElementById("size-value");
+  const rotationSlider = document.getElementById("rotation-slider");
+  const rotationValue = document.getElementById("rotation-value");
   const sizeConfirmBtn = document.getElementById("size-confirm-btn");
   const statusEl = document.getElementById("save-status");
   const colorPickerBtn = document.getElementById("color-picker-btn");
@@ -323,7 +325,7 @@
     shape.color = color;
     const el = canvasArea.querySelector(`.placed-shape[data-id="${shape.id}"]`);
     if (el) {
-      el.innerHTML = renderShapeSVG(shape.type, shape.w, shape.h, shape.color);
+      el.innerHTML = renderShapeSVG(shape.type, shape.w, shape.h, shape.color, shape.rotation);
     }
     return true;
   }
@@ -430,23 +432,24 @@
     });
   }
 
-  function renderShapeSVG(type, w, h, color) {
+  function renderShapeSVG(type, w, h, color, rotation = 0) {
     const hasColor = Boolean(color);
     const fill = hasColor ? color : 'none';
     const strokeAttrs = hasColor ? '' : ' stroke="#b8b3aa" stroke-width="3"';
+    const transform = rotation ? ` transform="rotate(${rotation} ${w/2} ${h/2})"` : '';
 
     if (type === 'circle') {
       const r = Math.min(w, h) / 2;
-      return `<svg width="${w}" height="${h}"><circle cx="${w / 2}" cy="${h / 2}" r="${r}" fill="${fill}"${strokeAttrs}/></svg>`;
+      return `<svg width="${w}" height="${h}"><circle cx="${w / 2}" cy="${h / 2}" r="${r}" fill="${fill}"${strokeAttrs}${transform}/></svg>`;
     }
 
     if (type === 'square') {
-      return `<svg width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="${fill}"${strokeAttrs}/></svg>`;
+      return `<svg width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="${fill}"${strokeAttrs}${transform}/></svg>`;
     }
 
     if (type === 'triangle') {
       const pts = `${w / 2},0 ${w},${h} 0,${h}`;
-      return `<svg width="${w}" height="${h}"><polygon points="${pts}" fill="${fill}"${strokeAttrs}/></svg>`;
+      return `<svg width="${w}" height="${h}"><polygon points="${pts}" fill="${fill}"${strokeAttrs}${transform}/></svg>`;
     }
 
     if (type === 'hexagon') {
@@ -458,7 +461,7 @@
         const ang = Math.PI / 3 * k - Math.PI / 6;
         pts.push([cx + r * Math.cos(ang), cy + r * Math.sin(ang)].join(','));
       }
-      return `<svg width="${w}" height="${h}"><polygon points="${pts.join(' ')}" fill="${fill}"${strokeAttrs}/></svg>`;
+      return `<svg width="${w}" height="${h}"><polygon points="${pts.join(' ')}" fill="${fill}"${strokeAttrs}${transform}/></svg>`;
     }
 
     return '';
@@ -584,7 +587,7 @@
       : (usesNeutralShapeColoring ? (state.activePaintColor || NEUTRAL_SHAPE_COLOR) : NEUTRAL_SHAPE_COLOR);
 
     const id = idCounter++;
-    const shape = { id, type: spec.type, color: resolvedColor, w, h, x, y, locked: false };
+    const shape = { id, type: spec.type, color: resolvedColor, w, h, x, y, locked: false, rotation: 0 };
     state.placed.push(shape);
     renderPlacedShape(shape);
     state.suppressNextDeselect = true;
@@ -695,6 +698,8 @@
     sizeControl.style.display = 'flex';
     sizeSlider.value = shp.w;
     sizeValue.textContent = shp.w;
+    rotationSlider.value = shp.rotation;
+    rotationValue.textContent = shp.rotation;
 
     updateSizeControlPosition(shp);
   }
@@ -759,8 +764,20 @@
     el.style.height = shp.h + 'px';
     el.style.left = shp.x + 'px';
     el.style.top = shp.y + 'px';
-    el.innerHTML = renderShapeSVG(shp.type, shp.w, shp.h, shp.color);
+    el.innerHTML = renderShapeSVG(shp.type, shp.w, shp.h, shp.color, shp.rotation);
     updateSizeControlPosition(shp);
+  });
+
+  rotationSlider.addEventListener('input', (e) => {
+    const val = Number(e.target.value);
+    rotationValue.textContent = val;
+    if (!state.selectedId) return;
+    const shp = state.placed.find(s => s.id === state.selectedId);
+    if (!shp) return;
+    shp.rotation = val;
+    const el = canvasArea.querySelector(`.placed-shape[data-id="${shp.id}"]`);
+    if (!el) return;
+    el.innerHTML = renderShapeSVG(shp.type, shp.w, shp.h, shp.color, shp.rotation);
   });
 
   function undo() {

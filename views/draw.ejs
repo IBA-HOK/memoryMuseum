@@ -95,9 +95,16 @@
       <% } %>
 
       <div id="size-control" class="size-control">
-        <label for="size-slider">サイズ</label>
-        <input id="size-slider" type="range" min="20" max="300" value="80">
-        <span id="size-value">80</span>px
+        <div class="rotation-control">
+          <label for="rotation-slider">回転</label>
+          <input id="rotation-slider" type="range" min="0" max="360" value="0">
+          <span id="rotation-value" class="value-display">0</span>°
+        </div>
+        <div class="size-control-inner">
+          <label for="size-slider">サイズ</label>
+          <input id="size-slider" type="range" min="20" max="300" value="80">
+          <span id="size-value" class="value-display">80</span>px
+        </div>
         <button type="button" id="size-confirm-btn" class="btn-secondary">決定</button>
       </div>
 
