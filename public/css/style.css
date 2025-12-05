@@ -193,18 +193,13 @@ body {
 }
 
 .mode-circle {
-  width: min(200px, 60vw);
-  height: min(200px, 60vw);
-  border-radius: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  color: white;
-  transition: transform 0.2s ease;
-  background: none;
-  overflow: hidden;
+  width: min(60vw, 280px);
+  overflow: visible;
+}
+.mode-img {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .mode-circle:hover {
