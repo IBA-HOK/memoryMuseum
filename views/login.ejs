@@ -30,10 +30,45 @@
       font-size: 28px;
       font-weight: bold;
       text-align: center;
-      margin-bottom: 30px;
-      color: #333;
-      background-image: url('/images/auth-title.png');
-      background-size: cover;
+      color: #9c27b0;
+      font-family: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+      letter-spacing: 0.1em;
+      display: inline-block;
+      margin: 0;
+      padding-bottom: 6px;
+      position: relative;
+      z-index: 1;
+    }
+    .auth-title-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      width: fit-content;
+      margin: 0 auto 6px auto;
+    }
+    .auth-title-decoration {
+      position: relative;
+      width: 100%;
+      margin: 6px auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 0;
+    }
+    .auth-title-decoration .line {
+      flex: 1 1 auto;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #ffcc00);
+      border-radius: 2px;
+      box-shadow: 0 0 8px #ffcc00;
+    }
+    .auth-title-decoration .star {
+      font-size: 14px;
+      margin-left: 5px;
+      color: #ffcc00;
+      text-shadow: 0 0 8px #ffcc00;
+      line-height: 1;
     }
     .auth-form {
       display: flex;
@@ -63,18 +98,20 @@
     }
     .auth-button {
       padding: 14px;
-      background-image: url('/images/auth-button.png');
-      background-size: cover;
+      background: linear-gradient(90deg, #6a11cb, #2575fc); /* Mimics the gradient of auth-button.png */
       color: white;
       border: none;
       border-radius: 10px;
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
-      transition: background 0.3s;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Adds depth */
+      transition: background 0.3s, box-shadow 0.3s;
     }
+
     .auth-button:hover {
-      background: #4d6680;
+      background: linear-gradient(90deg, #5a0fbf, #1f6ed4); /* Slightly darker gradient on hover */
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Enhanced shadow on hover */
     }
     .auth-switch {
       text-align: center;
@@ -109,7 +146,13 @@
 <body>
   <div class="auth-screen">
     <div class="auth-container">
+    <div class="auth-title-wrapper">
       <h1 class="auth-title">ログイン</h1>
+      <div class="auth-title-decoration">
+      <div class="line"></div>
+      <div class="star">★</div>
+      </div>
+    </div>
       <form class="auth-form" id="loginForm">
         <div class="form-group">
           <label for="username">ユーザー名</label>

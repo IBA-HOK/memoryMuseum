@@ -26,8 +26,45 @@
       font-size: 28px;
       font-weight: bold;
       text-align: center;
-      margin-bottom: 30px;
-      color: #333;
+      color: #9c27b0;
+      font-family: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+      letter-spacing: 0.1em;
+      display: inline-block;
+      margin: 0;
+      padding-bottom: 6px;
+      position: relative;
+      z-index: 1;
+    }
+    .auth-title-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      width: fit-content;
+      margin: 0 auto 6px auto;
+    }
+    .auth-title-decoration {
+      position: relative;
+      width: 100%;
+      margin: 6px auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 0;
+    }
+    .auth-title-decoration .line {
+      flex: 1 1 auto;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #ffcc00);
+      border-radius: 2px;
+      box-shadow: 0 0 8px #ffcc00;
+    }
+    .auth-title-decoration .star {
+      font-size: 14px;
+      margin-left: 5px;
+      color: #ffcc00;
+      text-shadow: 0 0 8px #ffcc00;
+      line-height: 1;
     }
     .auth-form {
       display: flex;
@@ -107,7 +144,13 @@
 <body>
   <div class="auth-screen">
     <div class="auth-container">
+    <div class="auth-title-wrapper">
       <h1 class="auth-title">新規登録</h1>
+      <div class="auth-title-decoration">
+      <div class="line"></div>
+      <div class="star">★</div>
+      </div>
+    </div>
       <form class="auth-form" id="registerForm">
         <div class="form-group">
           <label for="username">ユーザー名</label>
