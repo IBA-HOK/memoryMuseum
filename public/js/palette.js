@@ -5,6 +5,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const target = e.target;
     const isInteractive = target.tagName === 'BUTTON' ||
                          target.closest('button') ||
+                         target.tagName === 'LABEL' ||
+                         target.closest('label') ||
                          target.classList.contains('color-cell') ||
                          target.closest('.color-cell') ||
                          target.classList.contains('selected-chip') ||
