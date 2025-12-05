@@ -179,6 +179,7 @@ body {
 }
 
 .mode-screen {
+  background-color: #444;
   justify-content: space-evenly;
   color: white;
   background-image: url('../images/mode-back.png');
@@ -232,6 +233,7 @@ body {
 
 .select-screen {
   justify-content: center;
+  background-color: #333;
   color: white;
   padding: 20px;
 }
@@ -284,6 +286,7 @@ body {
 }
 
 .color-screen {
+  background-color: #d8d0c0;
   padding-bottom: 30px;
   overflow-y: auto;
   max-height: 100svh;
@@ -373,6 +376,7 @@ body {
 }
 
 .draw-screen-v2 {
+  background-color: #a89f91;
   padding: 0;
   justify-content: flex-start;
   align-items: center;
@@ -864,6 +868,7 @@ body {
     position: fixed;
   }
 }
+
 .complete-screen {
   padding: 16px 20px 20px;
   text-align: center;
