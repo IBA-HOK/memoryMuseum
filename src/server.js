@@ -6,6 +6,7 @@ const multer = require("multer");
 const bcrypt = require("bcryptjs");
 const { v4: uuidv4 } = require("uuid");
 const { PrismaClient } = require("@prisma/client");
+const { findSimilarArts } = require("./ccv");
 require("dotenv").config();
 
 const app = express();
@@ -615,7 +616,7 @@ app.get("/gallery", requireAuth, async (req, res, next) => {
     }
     const arts = await prisma.art.findMany({
       where: { artid: { in: artIds } },
-      orderBy: { artid: "desc" },
+      orderBy: { timestamp: "desc" },
     });
     res.render("gallery", {
       arts: arts.map((art) => ({
@@ -867,6 +868,62 @@ app.get("/api/arts/:artid", requireAuth, async (req, res, next) => {
       return res.status(404).json({ error: "art not found" });
     }
     res.json({ art: transformArt(art) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/similar-arts/:artid", requireAuth, async (req, res, next) => {
+  try {
+    const artid = Number(req.params.artid);
+    if (!Number.isInteger(artid)) {
+      return res.status(400).json({ error: "invalid art id" });
+    }
+
+    // Get the target art
+    const targetArt = await prisma.art.findUnique({ where: { artid } });
+    if (!targetArt) {
+      return res.status(404).json({ error: "art not found" });
+    }
+
+    // Get user's gallery art IDs
+    const artIds = await getUserGalleryArtIds(req.user);
+    if (artIds.length <= 1) {
+      return res.json({ similarArt: null });
+    }
+
+    // Get all arts except the target
+    const arts = await prisma.art.findMany({
+      where: { 
+        artid: { in: artIds, not: artid }
+      }
+    });
+
+    if (arts.length === 0) {
+      return res.json({ similarArt: null });
+    }
+
+    // Find similar arts using CCV
+    const targetImagePath = path.join(__dirname, '..', targetArt.path);
+    const artsWithPaths = arts.map(art => ({
+      ...art,
+      path: path.join(__dirname, '..', art.path)
+    }));
+
+    const similarArts = await findSimilarArts(targetImagePath, artsWithPaths, 5);
+    
+    // Randomly select one from top 5 similar arts
+    if (similarArts.length > 0) {
+      const randomIndex = Math.floor(Math.random() * similarArts.length);
+      const selectedArt = similarArts[randomIndex].art;
+      
+      res.json({ 
+        similarArt: transformArt(selectedArt),
+        similarity: similarArts[randomIndex].similarity
+      });
+    } else {
+      res.json({ similarArt: null });
+    }
   } catch (error) {
     next(error);
   }
