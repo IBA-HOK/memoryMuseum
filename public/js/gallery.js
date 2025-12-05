@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function handleTouchStart(e) {
     if (modal.style.display === 'flex') return;
     startY = e.touches[0].clientY;
+    currentY = startY;
     isDragging = true;
   }
 
