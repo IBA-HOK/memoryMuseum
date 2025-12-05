@@ -854,7 +854,7 @@ body {
 .quick-color-bar {
   width: 100%;
   padding: 12px 20px 18px;
-  display: flex;
+  display: none;
   justify-content: center;
   gap: 14px;
   background: rgba(255, 255, 255, 0.92);
@@ -865,6 +865,10 @@ body {
   flex-shrink: 0;
   z-index: 600;
   align-self: stretch;
+}
+
+.quick-color-bar.visible {
+  display: flex;
 }
 
 .quick-color-swatch {
@@ -1377,6 +1381,14 @@ body {
   background: rgba(72, 61, 139, 0.95);
 }
 
+/* Disabled state for hamburger on draw screen */
+.hamburger-button[disabled] {
+  opacity: 0.45;
+  cursor: default;
+  pointer-events: none;
+  transform: none;
+}
+
 .hamburger-button span {
   display: block;
   width: 24px;
@@ -1548,3 +1560,399 @@ body {
 .chromaticity-card .actions { display:flex; gap:6px; align-items:center; }
 #zoomLevelChrom { font-weight:600; color:#444; }
 
+
+/* ========== Draw Screen Responsive Design ========== */
+/* Continuous responsive scaling for various screen heights */
+
+/* Base: Full size for tall screens (>800px height) */
+/* Canvas: 280x280, Palette cells: 80px */
+
+/* Medium height screens (700-800px) */
+@media (max-height: 800px) {
+  .canvas-area {
+    width: 260px;
+    height: 260px;
+  }
+  
+  .shape-palette {
+    grid-template-rows: repeat(2, 75px);
+  }
+  
+  .shape-swatch {
+    height: 75px;
+  }
+  
+  .draw-main {
+    padding: 0 0 20px;
+  }
+}
+
+/* Shorter screens (600-700px) */
+@media (max-height: 700px) {
+  .canvas-area {
+    width: 240px;
+    height: 240px;
+  }
+  
+  .canvas-section {
+    padding: 8px 20px;
+  }
+  
+  .shape-palette {
+    grid-template-rows: repeat(2, 70px);
+    gap: 6px;
+  }
+  
+  .shape-swatch {
+    height: 70px;
+  }
+  
+  .palette-section {
+    padding: 8px 0;
+  }
+  
+  .draw-controls {
+    padding: 12px 20px 0;
+  }
+  
+  .draw-main {
+    padding: 0 0 16px;
+  }
+}
+
+/* Small height screens (500-600px) */
+@media (max-height: 600px) {
+  .canvas-area {
+    width: 220px;
+    height: 220px;
+  }
+  
+  .canvas-section {
+    padding: 6px 20px;
+  }
+  
+  .shape-palette {
+    grid-template-rows: repeat(2, 65px);
+    gap: 5px;
+    padding: 0 20px 8px 20px;
+  }
+  
+  .shape-swatch {
+    height: 65px;
+  }
+  
+  .palette-section {
+    padding: 6px 0;
+  }
+  
+  .palette-header {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  
+  .draw-controls {
+    padding: 10px 20px 0;
+  }
+  
+  .draw-controls .btn-primary {
+    min-width: 140px;
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+  
+  .draw-header {
+    padding: 6px 20px;
+    font-size: 12px;
+  }
+  
+  .btn-undo {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+  
+  .draw-screen-quick .draw-main {
+    padding-bottom: 120px;
+  }
+  
+  .draw-screen-slow {
+    padding-bottom: 100px;
+  }
+}
+
+/* Very small height screens (420-500px) */
+@media (max-height: 500px) {
+  .canvas-area {
+    width: 200px;
+    height: 200px;
+  }
+  
+  .canvas-section {
+    padding: 5px 15px;
+  }
+  
+  .shape-palette {
+    grid-template-rows: repeat(2, 60px);
+    gap: 4px;
+    padding: 0 15px 6px 15px;
+  }
+  
+  .shape-swatch {
+    height: 60px;
+  }
+  
+  .palette-section {
+    padding: 5px 0;
+  }
+  
+  .palette-header {
+    font-size: 11px;
+    margin-bottom: 5px;
+    padding: 0 15px;
+  }
+  
+  .draw-controls {
+    padding: 8px 15px 0;
+  }
+  
+  .draw-controls .btn-primary {
+    min-width: 120px;
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+  
+  .draw-header {
+    padding: 5px 15px;
+    font-size: 11px;
+  }
+  
+  .btn-undo {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+  
+  .btn-shuffle {
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+  
+  .draw-main {
+    padding: 0 0 12px;
+  }
+  
+  .draw-screen-quick .draw-main {
+    padding-bottom: 110px;
+  }
+  
+  .quick-color-bar {
+    padding: 10px 15px 14px;
+    gap: 12px;
+  }
+  
+  .quick-color-swatch {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .draw-screen-slow {
+    padding-bottom: 90px;
+  }
+  
+  .floating-color-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 22px;
+    bottom: 12px;
+    right: 20px;
+  }
+}
+
+/* Extra small height screens (350-420px) */
+@media (max-height: 420px) {
+  .canvas-area {
+    width: 180px;
+    height: 180px;
+  }
+  
+  .canvas-section {
+    padding: 4px 12px;
+  }
+  
+  .shape-palette {
+    grid-template-rows: repeat(2, 55px);
+    gap: 3px;
+    padding: 0 12px 5px 12px;
+  }
+  
+  .shape-swatch {
+    height: 55px;
+    border-radius: 10px;
+  }
+  
+  .palette-section {
+    padding: 4px 0;
+  }
+  
+  .palette-header {
+    font-size: 10px;
+    margin-bottom: 4px;
+    padding: 0 12px;
+  }
+  
+  .palette-controls {
+    gap: 4px;
+  }
+  
+  .draw-controls {
+    padding: 6px 12px 0;
+  }
+  
+  .draw-controls .btn-primary {
+    min-width: 100px;
+    padding: 7px 14px;
+    font-size: 12px;
+  }
+  
+  .draw-header {
+    padding: 4px 12px;
+    font-size: 10px;
+  }
+  
+  .btn-undo {
+    padding: 3px 7px;
+    font-size: 9px;
+  }
+  
+  .btn-shuffle {
+    padding: 2px 6px;
+    font-size: 9px;
+  }
+  
+  .draw-main {
+    padding: 0 0 10px;
+  }
+  
+  .save-status {
+    padding: 4px 12px;
+    font-size: 9px;
+  }
+  
+  .draw-screen-quick .draw-main {
+    padding-bottom: 100px;
+  }
+  
+  .quick-color-bar {
+    padding: 8px 12px 12px;
+    gap: 10px;
+  }
+  
+  .quick-color-swatch {
+    width: 40px;
+    height: 40px;
+    border-width: 2px;
+  }
+  
+  .draw-screen-slow {
+    padding-bottom: 80px;
+  }
+  
+  .floating-color-btn {
+    width: 46px;
+    height: 46px;
+    font-size: 20px;
+    bottom: 10px;
+    right: 16px;
+  }
+}
+
+/* Tiny height screens (<350px) - Extreme minimal mode */
+@media (max-height: 350px) {
+  .canvas-area {
+    width: 160px;
+    height: 160px;
+  }
+  
+  .canvas-section {
+    padding: 3px 10px;
+  }
+  
+  .shape-palette {
+    grid-template-rows: repeat(2, 50px);
+    gap: 2px;
+    padding: 0 10px 4px 10px;
+  }
+  
+  .shape-swatch {
+    height: 50px;
+    border-radius: 8px;
+  }
+  
+  .palette-section {
+    padding: 3px 0;
+  }
+  
+  .palette-header {
+    font-size: 9px;
+    margin-bottom: 3px;
+    padding: 0 10px;
+  }
+  
+  .draw-controls {
+    padding: 5px 10px 0;
+  }
+  
+  .draw-controls .btn-primary {
+    min-width: 90px;
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+  
+  .draw-header {
+    padding: 3px 10px;
+    font-size: 9px;
+  }
+  
+  .btn-undo {
+    padding: 2px 6px;
+    font-size: 8px;
+  }
+  
+  .btn-shuffle {
+    padding: 2px 5px;
+    font-size: 8px;
+  }
+  
+  .draw-main {
+    padding: 0 0 8px;
+  }
+  
+  .save-status {
+    padding: 3px 10px;
+    font-size: 8px;
+  }
+  
+  .draw-screen-quick .draw-main {
+    padding-bottom: 90px;
+  }
+  
+  .quick-color-bar {
+    padding: 6px 10px 10px;
+    gap: 8px;
+  }
+  
+  .quick-color-swatch {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .draw-screen-slow {
+    padding-bottom: 70px;
+  }
+  
+  .floating-color-btn {
+    width: 42px;
+    height: 42px;
+    font-size: 18px;
+    bottom: 8px;
+    right: 12px;
+  }
+}
