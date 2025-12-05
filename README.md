@@ -13,6 +13,11 @@ Node.js/Express + SQLite (Prisma) で構築した個人用ドローイングア�
    DATABASE_URL="file:./dev.db"
    SESSION_SECRET="change-me"
    PORT=3000
+   
+   # 本番環境でHTTPS化する場合（Let's Encrypt）
+   # DOMAIN=your-domain.com
+   # EMAIL=your-email@example.com
+   # PRODUCTION=true
    ```
 3. **SQLite スキーマの生成** – スキーマ変更を反映する際に実行します。
    ```powershell
@@ -53,3 +58,32 @@ Node.js/Express + SQLite (Prisma) で構築した個人用ドローイングア�
 - `uploads/` フォルダーはアプリ起動時に自動で作成され、`.gitignore` 済みです。
 - Prisma スキーマを変更した際は `cmd /c npm run prisma:generate` でクライアントを再生成し、`cmd /c npm run prisma:migrate` でマイグレーションを反映してください。
 - フロントエンドは EJS + Vanilla JS で構成されており、`public/js/` に Canvas 描画やパレット選択ロジックをまとめています。
+
+## HTTPS化（本番環境）
+
+本番環境でHTTPSを有効にするには、以下の手順で設定します：
+
+1. **ドメインの準備**
+   - 独自ドメインを取得し、サーバーのIPアドレスを指すようDNS設定を行います。
+   - ポート80と443がファイアウォールで開放されていることを確認します。
+
+2. **環境変数の設定**
+   ```dotenv
+   DOMAIN=your-domain.com
+   EMAIL=your-email@example.com
+   PRODUCTION=true
+   ```
+
+3. **サーバーの起動**
+   - 本番環境では、ルート権限（または80/443ポートへのバインド権限）でサーバーを起動する必要があります。
+   - Let's Encryptが自動的に証明書を取得・更新します。
+   - HTTPでのアクセスは自動的にHTTPSへリダイレクトされます。
+
+4. **証明書の自動更新**
+   - `letsencrypt-express`が証明書の有効期限を監視し、自動的に更新を行います。
+   - 証明書ファイルは`letsencrypt/etc/`ディレクトリに保存されます（.gitignore済み）。
+
+**注意事項：**
+- 開発環境（`PRODUCTION=false`または未設定）では、通常のHTTPサーバーとして動作します。
+- Let's Encryptは実際の公開サーバーでのみ動作します（localhostでは使用できません）。
+- 証明書の取得には、ドメインの所有権確認が必要です。

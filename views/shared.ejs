@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= art.title %> | 思い出美術館</title>
+  
+  <!-- Open Graph Tags for social media preview -->
+  <meta property="og:title" content="<%= art.title %> | 思い出美術館">
+  <meta property="og:description" content="思い出美術館で共有された作品をご覧ください">
+  <meta property="og:image" content="<%= fullImageUrl %>">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="<%= shareUrl %>">
+  <meta property="og:site_name" content="思い出美術館">
+  
+  <!-- Twitter Card Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="<%= art.title %> | 思い出美術館">
+  <meta name="twitter:description" content="思い出美術館で共有された作品をご覧ください">
+  <meta name="twitter:image" content="<%= fullImageUrl %>">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      overflow: auto;
+      touch-action: auto;
+    }
+    .shared-container {
+      width: 100%;
+      max-width: 600px;
+      min-height: 100vh;
+      background-color: #fff;
+      padding: 40px 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0 auto;
+    }
+    .shared-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .shared-header h1 {
+      font-size: 24px;
+      color: #4a4a4a;
+      margin: 0 0 10px 0;
+    }
+    .shared-header p {
+      font-size: 14px;
+      color: #888;
+      margin: 0;
+    }
+    .shared-art {
+      width: 100%;
+      max-width: 500px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      background: white;
+    }
+    .shared-art img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .shared-info {
+      padding: 20px;
+      text-align: center;
+    }
+    .shared-info h2 {
+      font-size: 20px;
+      color: #333;
+      margin: 0 0 10px 0;
+    }
+    .shared-info .date {
+      font-size: 14px;
+      color: #888;
+    }
+    .shared-footer {
+      margin-top: 40px;
+      text-align: center;
+    }
+    .shared-footer a {
+      display: inline-block;
+      background-color: #8c7b75;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 20px;
+      text-decoration: none;
+      transition: transform 0.2s ease;
+    }
+    .shared-footer a:hover {
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="shared-container">
+    <div class="shared-header">
+      <h1>思い出美術館</h1>
+      <p>共有された作品</p>
+    </div>
+
+    <div class="shared-art">
+      <img src="<%= art.path %>" alt="<%= art.title %>">
+      <div class="shared-info">
+        <h2><%= art.title %></h2>
+        <p class="date"><%= new Date(art.timestamp).toLocaleDateString('ja-JP') %></p>
+      </div>
+    </div>
+
+    <div class="shared-footer">
+      <a href="/login">思い出美術館を始める</a>
+    </div>
+  </div>
+</body>
+</html>

@@ -40,11 +40,12 @@ model Gallery {
 }
 
 model Art {
-  artid     Int     @id @default(autoincrement())
-  path      String
-  timestamp BigInt
-  creatorid Int
-  title     String?
+  artid       Int     @id @default(autoincrement())
+  path        String
+  timestamp   BigInt
+  creatorid   Int
+  title       String?
+  share_token String? @unique
 
   creator User @relation(fields: [creatorid], references: [userid])
 }
