@@ -64,7 +64,7 @@
           <% for (let i = 0; i < arts.length; i += 4) { %>
             <div class="gallery-row">
               <% arts.slice(i, i + 4).forEach(function(art) { %>
-                <div class="gallery-card" data-artid="<%= art.artid %>" data-title="<%= art.title || '' %>" data-date="<%= new Date(art.timestamp).toLocaleDateString('ja-JP') %>">
+                <div class="gallery-card <%= art.shape === 'circle' ? 'shape-circle' : 'shape-square' %>" data-artid="<%= art.artid %>" data-title="<%= art.title || '' %>" data-date="<%= new Date(art.timestamp).toLocaleDateString('ja-JP') %>">
                   <img src="<%= art.path %>" alt="作品 <%= art.artid %>" loading="lazy">
                   <div class="card-footer">
                     <span><%= new Date(art.timestamp).toLocaleDateString("ja-JP") %></span>
