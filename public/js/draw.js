@@ -133,6 +133,14 @@
       el.classList.toggle('active', isActive);
       el.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     });
+    // Toggle painting mode on the canvas so we can show different cursors / hover
+    if (canvasArea) {
+      if (state.activePaintColor) {
+        canvasArea.classList.add('painting-mode');
+      } else {
+        canvasArea.classList.remove('painting-mode');
+      }
+    }
   }
 
   function renderQuickColorPalette() {
@@ -155,7 +163,14 @@
       button.dataset.color = normalized;
       button.setAttribute('aria-label', color);
       button.setAttribute('aria-pressed', 'false');
-      button.addEventListener('click', () => handleColorSelection(color));
+      button.addEventListener('click', () => {
+        // Toggle behavior: if same color clicked again, clear active color
+        if (normalizeColor(state.activePaintColor) === normalizeColor(color)) {
+          setActivePaintColor(null);
+        } else {
+          handleColorSelection(color);
+        }
+      });
       quickColorPalette.appendChild(button);
     });
     setActivePaintColor(state.activePaintColor);
@@ -611,6 +626,14 @@
     el.addEventListener('click', (ev) => {
       ev.stopPropagation();
       if (shape.locked) return;
+      // If a paint color is actively selected, apply it to the clicked shape.
+      // This enables "カラー先選択 -> 図形タップで色を反映" behavior.
+      if (state.activePaintColor) {
+        applyColorToPlacedShape(shape.id, state.activePaintColor);
+        // Keep selecting the shape so user can further edit size/rotation if desired
+        selectPlacedShape(shape.id);
+        return;
+      }
       selectPlacedShape(shape.id);
     });
 
@@ -902,8 +925,16 @@
   sizeConfirmBtn.addEventListener('click', lockAllShapes);
 
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.shape-swatch') && !e.target.closest('#keep-btn')) {
-      if (e.target.closest('.color-modal__panel') || e.target.closest('#color-picker-btn')) {
+    // Don't clear palette selection when interacting with palette-related controls
+    const clickedShapeSwatch = e.target.closest('.shape-swatch');
+    const clickedKeepBtn = e.target.closest('#keep-btn');
+    const clickedColorModalPanel = e.target.closest('.color-modal__panel');
+    const clickedColorPickerBtn = e.target.closest('#color-picker-btn');
+    const clickedQuickColor = e.target.closest('.quick-color-swatch') || e.target.closest('#quick-color-palette') || e.target.closest('.quick-color-bar');
+
+    if (!clickedShapeSwatch && !clickedKeepBtn) {
+      // Allow clicks inside the color modal, color picker button or quick palette
+      if (clickedColorModalPanel || clickedColorPickerBtn || clickedQuickColor) {
         return;
       }
       state.selectedPaletteIndex = null;
