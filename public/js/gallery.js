@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const modalDate = document.getElementById('modal-date');
   const closeBtn = document.querySelector('.close');
   const similarBtn = document.getElementById('similar-art-btn');
+  const downloadBtn = document.getElementById('download-art-btn');
+  const shareBtn = document.getElementById('share-art-btn');
   let currentArtId = null;
   let allArts = [];
 
@@ -105,6 +107,147 @@ document.addEventListener('DOMContentLoaded', function() {
       const imgSrc = this.querySelector('img').src;
       showArt(artid, title, date, imgSrc);
     });
+  });
+
+  // Share button
+  shareBtn.addEventListener('click', async function() {
+    if (!currentArtId) return;
+    
+    const originalText = shareBtn.textContent;
+    const originalBg = shareBtn.style.backgroundColor;
+    
+    try {
+      const response = await fetch(`/api/arts/${currentArtId}/share`, {
+        method: 'POST'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate share URL');
+      }
+      
+      const data = await response.json();
+      
+      if (data.shareUrl) {
+        const title = modalTitle.textContent.replace(/「|」/g, '') || '無題';
+        
+        // Check if Web Share API is available and supported
+        const isSecureContext = window.isSecureContext;
+        const hasShareAPI = 'share' in navigator;
+        
+        console.log('Share API Debug:', {
+          isSecureContext,
+          hasShareAPI,
+          protocol: window.location.protocol,
+          userAgent: navigator.userAgent
+        });
+        
+        // Try to use native Web Share API first (requires HTTPS on mobile)
+        if (hasShareAPI && isSecureContext) {
+          try {
+            await navigator.share({
+              title: `${title} | 思い出美術館`,
+              text: '思い出美術館で共有された作品をご覧ください',
+              url: data.shareUrl
+            });
+            
+            // Show success notification
+            shareBtn.textContent = '共有しました！';
+            shareBtn.style.backgroundColor = '#4CAF50';
+            
+            setTimeout(() => {
+              shareBtn.textContent = originalText;
+              shareBtn.style.backgroundColor = originalBg;
+            }, 2000);
+            
+            return; // Exit if Web Share API succeeded
+          } catch (shareError) {
+            // User cancelled or share failed
+            if (shareError.name === 'AbortError') {
+              console.log('Share cancelled by user');
+              return; // Don't show error if user just cancelled
+            }
+            console.warn('Web Share API failed:', shareError.name, shareError.message);
+          }
+        } else {
+          console.log('Web Share API not available:', {
+            reason: !hasShareAPI ? 'API not supported' : 'Not secure context (needs HTTPS)'
+          });
+        }
+        
+        // Fallback: Copy to clipboard (for desktop or when share API unavailable)
+        let copySuccess = false;
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(data.shareUrl);
+            copySuccess = true;
+          }
+        } catch (clipboardError) {
+          console.warn('Clipboard API failed:', clipboardError);
+        }
+        
+        // Fallback: use textarea method
+        if (!copySuccess) {
+          const textarea = document.createElement('textarea');
+          textarea.value = data.shareUrl;
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          textarea.style.top = '-9999px';
+          textarea.style.left = '-9999px';
+          document.body.appendChild(textarea);
+          textarea.focus();
+          textarea.select();
+          textarea.setSelectionRange(0, textarea.value.length);
+          try {
+            copySuccess = document.execCommand('copy');
+          } catch (err) {
+            console.error('Fallback copy failed:', err);
+          }
+          document.body.removeChild(textarea);
+        }
+        
+        // Show notification
+        if (copySuccess) {
+          shareBtn.textContent = 'URLをコピーしました！';
+          shareBtn.style.backgroundColor = '#4CAF50';
+        } else {
+          // If copy failed, show the URL in a prompt (better for mobile)
+          const userAction = prompt('共有URL（長押しでコピー）:', data.shareUrl);
+          if (userAction !== null) {
+            shareBtn.textContent = 'URLを表示しました';
+            shareBtn.style.backgroundColor = '#2196F3';
+          }
+          setTimeout(() => {
+            shareBtn.textContent = originalText;
+            shareBtn.style.backgroundColor = originalBg;
+          }, 2000);
+          return;
+        }
+        
+        setTimeout(() => {
+          shareBtn.textContent = originalText;
+          shareBtn.style.backgroundColor = originalBg;
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Error sharing art:', error);
+      shareBtn.textContent = originalText;
+      shareBtn.style.backgroundColor = originalBg;
+      alert('共有URLの作成に失敗しました');
+    }
+  });
+
+  // Download button
+  downloadBtn.addEventListener('click', function() {
+    const imgSrc = modalImage.src;
+    const title = modalTitle.textContent.replace(/「|」/g, '') || '無題';
+    
+    // Create a temporary link element
+    const link = document.createElement('a');
+    link.href = imgSrc;
+    link.download = `${title}_${currentArtId}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   });
 
   // Similar art button

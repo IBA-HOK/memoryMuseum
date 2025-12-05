@@ -8,3 +8,6 @@ dev.db
 prisma/dev.db-journal
 uploads/
 package-lock.json
+
+# Let's Encrypt certificates
+letsencrypt/

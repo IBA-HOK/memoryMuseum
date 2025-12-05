@@ -17,6 +17,11 @@ const SESSION_SECRET = process.env.SESSION_SECRET || "memoryMuseumSecret";
 const SESSION_COOKIE = "session_id";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 
+// Let's Encrypt設定
+const DOMAIN = process.env.DOMAIN || "";
+const EMAIL = process.env.EMAIL || "";
+const PRODUCTION = process.env.PRODUCTION === "true";
+
 const VIEWS_DIR = path.join(__dirname, "..", "views");
 const STATIC_DIR = path.join(__dirname, "..", "public");
 const UPLOAD_DIR = path.join(__dirname, "..", "uploads");
@@ -631,6 +636,42 @@ app.get("/gallery", requireAuth, async (req, res, next) => {
   }
 });
 
+// Public shared art page
+app.get("/shared/:token", async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    
+    const art = await prisma.art.findUnique({
+      where: { share_token: token },
+      include: { creator: true }
+    });
+
+    if (!art) {
+      return res.status(404).send("作品が見つかりません");
+    }
+
+    // Generate full URLs for OG tags
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const baseUrl = `${protocol}://${host}`;
+    const artPath = `/${art.path.replace(/\\/g, "/")}`;
+    const fullImageUrl = `${baseUrl}${artPath}`;
+    const shareUrl = `${baseUrl}${req.originalUrl}`;
+
+    res.render("shared", {
+      art: {
+        ...transformArt(art),
+        path: artPath,
+        title: art.title || "無題",
+      },
+      fullImageUrl,
+      shareUrl
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // --------------------------------------------------------------------------
 // AUTH & SESSION API
 // --------------------------------------------------------------------------
@@ -1069,6 +1110,47 @@ app.delete("/api/arts/:artid", requireAuth, async (req, res, next) => {
   }
 });
 
+// Share art - generate share token
+app.post("/api/arts/:artid/share", requireAuth, async (req, res, next) => {
+  try {
+    const artid = Number(req.params.artid);
+    if (!Number.isInteger(artid)) {
+      return res.status(400).json({ error: "invalid art id" });
+    }
+
+    // Check if art exists and belongs to the user
+    const art = await prisma.art.findUnique({
+      where: { artid },
+      include: { creator: true }
+    });
+
+    if (!art) {
+      return res.status(404).json({ error: "art not found" });
+    }
+
+    if (art.creatorid !== req.user.userid) {
+      return res.status(403).json({ error: "forbidden" });
+    }
+
+    // Generate share token if not exists
+    let shareToken = art.share_token;
+    if (!shareToken) {
+      shareToken = uuidv4();
+      await prisma.art.update({
+        where: { artid },
+        data: { share_token: shareToken }
+      });
+    }
+
+    res.json({ 
+      shareToken,
+      shareUrl: `${req.protocol}://${req.get('host')}/shared/${shareToken}`
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.get("/api/galleries", requireAuth, async (_req, res, next) => {
   try {
     const galleries = await prisma.gallery.findMany({ orderBy: { galleryid: "asc" } });
@@ -1445,6 +1527,39 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: "internal server error" });
 });
 
-app.listen(PORT, () => {
-  console.log(`memoryMuseum server listening on port ${PORT}`);
-});
+// サーバー起動処理
+if (PRODUCTION && DOMAIN && EMAIL) {
+  // 本番環境: Let's Encryptを使用してHTTPS化
+  const lex = require("letsencrypt-express").create({
+    server: "https://acme-v02.api.letsencrypt.org/directory",
+    version: "draft-11",
+    configDir: path.join(__dirname, "..", "letsencrypt", "etc"),
+    email: EMAIL,
+    agreeTos: true,
+    approveDomains: [DOMAIN],
+    communityMember: false,
+    telemetry: false,
+    renewWithin: 91 * 24 * 60 * 60 * 1000,
+    renewBy: 90 * 24 * 60 * 60 * 1000,
+    debug: false
+  });
+
+  require("http")
+    .createServer(lex.middleware(require("redirect-https")()))
+    .listen(80, () => {
+      console.log("HTTP server listening on port 80 (redirecting to HTTPS)");
+    });
+
+  require("https")
+    .createServer(lex.httpsOptions, lex.middleware(app))
+    .listen(443, () => {
+      console.log(`memoryMuseum HTTPS server listening on port 443`);
+      console.log(`Domain: ${DOMAIN}`);
+    });
+} else {
+  // 開発環境: 通常のHTTPサーバー
+  app.listen(PORT, () => {
+    console.log(`memoryMuseum server listening on port ${PORT}`);
+    console.log("Development mode: HTTP only");
+  });
+}

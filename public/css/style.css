@@ -1148,8 +1148,15 @@ body {
   margin: 0 0 10px 0;
 }
 
-.modal-info .btn-primary {
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
   margin-top: 10px;
+}
+
+.modal-buttons .btn-primary {
+  margin-top: 0;
 }
 
 .close {
