@@ -1,4 +1,53 @@
 (() => {
+  let isDragging = false;
+
+  // Prevent swipe gestures on the entire document
+  const preventSwipe = (e) => {
+    // Allow touch events on scrollable areas
+    const target = e.target;
+    const isScrollable = target.closest('.draw-main') ||
+                        target.closest('.color-screen') ||
+                        target.closest('.gallery-wrapper');
+
+    // Allow touch events on interactive elements
+    const isInteractive = target.tagName === 'BUTTON' ||
+                         target.closest('button') ||
+                         target.tagName === 'INPUT' ||
+                         target.closest('input') ||
+                         target.classList.contains('quick-color-swatch') ||
+                         target.closest('.quick-color-swatch') ||
+                         target.classList.contains('color-modal__swatch') ||
+                         target.closest('.color-modal__swatch') ||
+                         target.classList.contains('shape-swatch') ||
+                         target.closest('.shape-swatch') ||
+                         target.classList.contains('placed-shape') ||
+                         target.closest('.placed-shape');
+
+    if (isInteractive) return; // Allow touch on interactive elements
+
+    if (isScrollable && e.type === 'touchmove' && !isDragging) {
+      // Allow vertical scrolling in scrollable areas when not dragging
+      return;
+    }
+
+    if (e.touches && e.touches.length > 1) return; // Allow pinch zoom
+    e.preventDefault();
+  };
+
+  // Track drag state
+  document.addEventListener('touchstart', (e) => {
+    isDragging = false;
+  }, { passive: true });
+
+  document.addEventListener('touchend', (e) => {
+    isDragging = false;
+  }, { passive: true });
+
+  // Add touch event listeners to prevent swiping
+  document.addEventListener('touchstart', preventSwipe, { passive: false });
+  document.addEventListener('touchmove', preventSwipe, { passive: false });
+  document.addEventListener('touchend', preventSwipe, { passive: false });
+
   const container = document.querySelector(".draw-screen-v2");
   if (!container) return;
 
@@ -30,13 +79,13 @@
   const canvasArea = document.getElementById("canvas-area");
   const palette = document.getElementById("shape-palette");
   const undoBtn = document.getElementById("undo-btn");
-  const regenBtn = document.getElementById("regen-btn");
   const keepBtn = document.getElementById("keep-btn");
   const regenPaletteBtn = document.getElementById("regen-palette-btn");
   const completeBtn = document.getElementById("complete-btn");
   const sizeControl = document.getElementById("size-control");
   const sizeSlider = document.getElementById("size-slider");
   const sizeValue = document.getElementById("size-value");
+  const sizeConfirmBtn = document.getElementById("size-confirm-btn");
   const statusEl = document.getElementById("save-status");
   const colorPickerBtn = document.getElementById("color-picker-btn");
   const colorModal = document.getElementById("color-modal");
@@ -416,6 +465,7 @@
   }
 
   function initiateDirectionalDrag(initialEvent, shapeSpec) {
+    isDragging = true;
     const pointerId = initialEvent.pointerId;
     const startX = initialEvent.clientX;
     const startY = initialEvent.clientY;
@@ -448,6 +498,7 @@
     };
 
     function cleanup() {
+      isDragging = false;
       document.removeEventListener('pointermove', move, true);
       document.removeEventListener('pointerup', up, true);
       document.removeEventListener('pointercancel', cancel, true);
@@ -459,6 +510,7 @@
   }
 
   function startDragFromSwatch(e, shapeSpec) {
+    isDragging = true;
     const pointerId = e.pointerId ?? Date.now();
     const helper = document.createElement('div');
     helper.className = 'dragging-helper';
@@ -504,6 +556,7 @@
     }
 
     function cleanupDrag() {
+      isDragging = false;
       document.body.classList.remove('dragging-touch-block');
       document.removeEventListener('pointermove', move);
       document.removeEventListener('pointerup', up);
@@ -563,6 +616,7 @@
       if (shape.locked || !e.isPrimary) return;
       if (e.target.closest('.placed-shape') !== el) return;
       
+      isDragging = true;
       e.stopPropagation();
       const pointerId = e.pointerId;
       const startX = e.clientX;
@@ -607,6 +661,7 @@
       };
 
       function cleanup() {
+        isDragging = false;
         document.removeEventListener('pointermove', move);
         document.removeEventListener('pointerup', up);
         document.removeEventListener('pointercancel', cancel);
@@ -806,11 +861,28 @@
     }
   }
 
+  function lockAllShapes() {
+    // Lock all placed shapes
+    state.placed.forEach(shape => {
+      shape.locked = true;
+    });
+    
+    // Update DOM elements
+    canvasArea.querySelectorAll('.placed-shape').forEach(el => {
+      el.classList.add('locked');
+    });
+    
+    // Hide size control
+    if (sizeControl) {
+      sizeControl.style.display = 'none';
+    }
+  }
+
   undoBtn.addEventListener('click', undo);
-  regenBtn.addEventListener('click', () => generatePalette(8));
   keepBtn.addEventListener('click', toggleKeep);
   regenPaletteBtn.addEventListener('click', () => generatePalette(8));
   completeBtn.addEventListener('click', completeDrawing);
+  sizeConfirmBtn.addEventListener('click', lockAllShapes);
 
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.shape-swatch') && !e.target.closest('#keep-btn')) {

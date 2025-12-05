@@ -1,4 +1,26 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Prevent swipe gestures on the entire document
+  const preventSwipe = (e) => {
+    // Allow touch events on interactive elements
+    const target = e.target;
+    const isInteractive = target.tagName === 'BUTTON' ||
+                         target.closest('button') ||
+                         target.classList.contains('color-cell') ||
+                         target.closest('.color-cell') ||
+                         target.classList.contains('selected-chip') ||
+                         target.closest('.selected-chip');
+
+    if (isInteractive) return; // Allow touch on interactive elements
+
+    if (e.touches && e.touches.length > 1) return; // Allow pinch zoom
+    e.preventDefault();
+  };
+
+  // Add touch event listeners to prevent swiping
+  document.addEventListener('touchstart', preventSwipe, { passive: false });
+  document.addEventListener('touchmove', preventSwipe, { passive: false });
+  document.addEventListener('touchend', preventSwipe, { passive: false });
+
   const data = window.__PALETTE_DATA__ || {
     mode: "slow",
     autoSelected: false,
@@ -121,39 +143,67 @@ document.addEventListener("DOMContentLoaded", () => {
     submitBtn.disabled = state.selected.length !== maxColors;
   }
 
-  // Image upload handler
+  // Image upload handler (Client-side color extraction)
   const imageUpload = document.getElementById("image-upload");
   if (imageUpload) {
     imageUpload.addEventListener("change", async (e) => {
       const files = e.target.files;
       if (!files || files.length === 0) return;
 
-      const formData = new FormData();
-      for (let i = 0; i < files.length; i++) {
-        formData.append("images", files[i]);
-      }
-
       try {
-        const response = await fetch("/api/extract-colors", {
-          method: "POST",
-          body: formData,
-        });
+        const allColors = [];
 
-        if (!response.ok) {
-          throw new Error("Failed to extract colors");
+        // Process each selected image
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          
+          // Create an image element to load the file
+          const img = new Image();
+          const imageUrl = URL.createObjectURL(file);
+          
+          // Wait for image to load
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = imageUrl;
+          });
+
+          // Extract colors using Vibrant.js
+          const vibrant = new Vibrant(img);
+          const palette = await vibrant.getPalette();
+          
+          // Collect all available swatches
+          const swatches = [
+            palette.Vibrant,
+            palette.DarkVibrant,
+            palette.LightVibrant,
+            palette.Muted,
+            palette.DarkMuted,
+            palette.LightMuted,
+          ].filter(swatch => swatch !== null && swatch !== undefined);
+          
+          // Extract hex colors
+          swatches.forEach(swatch => {
+            const hex = swatch.hex;
+            if (!allColors.includes(hex)) {
+              allColors.push(hex);
+            }
+          });
+
+          // Clean up the object URL
+          URL.revokeObjectURL(imageUrl);
         }
 
-        const result = await response.json();
-        if (result.colors && result.colors.length > 0) {
+        if (allColors.length > 0) {
           // Add extracted colors to available colors
-          result.colors.forEach((color) => {
+          allColors.forEach((color) => {
             if (!data.availableColors.includes(color)) {
               data.availableColors.unshift(color);
             }
           });
           
-          // Auto-select the extracted colors
-          state.selected = result.colors.slice(0, maxColors);
+          // Auto-select the extracted colors (up to maxColors)
+          state.selected = allColors.slice(0, maxColors);
           
           buildGrid();
           updateActiveCells();
