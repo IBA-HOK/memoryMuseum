@@ -562,7 +562,7 @@ app.get("/atelier/complete", requireAuth, async (req, res, next) => {
         };
       }
     }
-    res.render("complete", { art });
+    res.render("complete", { art, mode: flow.mode || "slow" });
     flow.mode = null;
     flow.shape = null;
     flow.colors = [];
