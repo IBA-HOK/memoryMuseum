@@ -8,57 +8,59 @@
 </head>
 <body>
   <div class="screen-container draw-screen-v2 <%= mode === 'slow' ? 'draw-screen-slow' : (mode === 'quick' ? 'draw-screen-quick' : '') %>" data-shape="<%= shape %>" data-mode="<%= mode %>" data-colors='<%- JSON.stringify(colors) %>' data-color-pool='<%- JSON.stringify(colorPool) %>'>
-    <div class="draw-header">
-      <span><%= mode === "slow" ? "じっくりモード" : "サクッとモード" %></span>
-      <span><%= username %> さん</span>
-      <button type="button" id="undo-btn" class="btn-undo">↩︎ Undo</button>
-    </div>
-    
-    <div class="canvas-section">
-      <div id="canvas-area" class="canvas-area <%= shape === 'circle' ? 'circle' : 'square' %>"></div>
-    </div>
+    <div class="draw-main">
+      <div class="draw-header">
+        <span><%= mode === "slow" ? "じっくりモード" : "サクッとモード" %></span>
+        <span><%= username %> さん</span>
+        <button type="button" id="undo-btn" class="btn-undo">↩︎ Undo</button>
+      </div>
+      
+      <div class="canvas-section">
+        <div id="canvas-area" class="canvas-area <%= shape === 'circle' ? 'circle' : 'square' %>"></div>
+      </div>
 
-    <div class="palette-section">
-      <div class="palette-header">
-        <span>図形パレット</span>
-        <div class="palette-controls">
-          <button type="button" id="keep-btn" class="btn-shuffle" disabled>キープ</button>
-          <button type="button" id="regen-palette-btn" class="btn-shuffle">シャッフル</button>
+      <div class="palette-section">
+        <div class="palette-header">
+          <span>図形パレット</span>
+          <div class="palette-controls">
+            <button type="button" id="keep-btn" class="btn-shuffle" disabled>キープ</button>
+            <button type="button" id="regen-palette-btn" class="btn-shuffle">シャッフル</button>
+          </div>
+        </div>
+        <div id="shape-palette" class="shape-palette"></div>
+      </div>
+
+      <div class="draw-controls">
+        <button type="button" id="complete-btn" class="btn-primary">完成</button>
+      </div>
+
+      <% if (mode === "slow") { %>
+      <button type="button" id="color-picker-btn" class="floating-color-btn" aria-haspopup="dialog" aria-controls="color-modal" aria-label="色を選ぶ">🎨</button>
+      <div id="color-modal" class="color-modal" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="color-modal__backdrop" data-dismiss="color-modal"></div>
+        <div class="color-modal__panel">
+          <div class="color-modal__header">
+            <span>色を選ぶ</span>
+            <button type="button" id="color-modal-close" class="color-modal__close" aria-label="閉じる">閉じる</button>
+          </div>
+          <div id="color-modal-grid" class="color-modal__grid"></div>
         </div>
       </div>
-      <div id="shape-palette" class="shape-palette"></div>
-    </div>
+      <% } %>
 
-    <div class="draw-controls">
-      <button type="button" id="regen-btn" class="btn-secondary">パレット再生成</button>
-      <button type="button" id="complete-btn" class="btn-primary">完成</button>
+      <div id="size-control" class="size-control">
+        <label for="size-slider">サイズ</label>
+        <input id="size-slider" type="range" min="20" max="300" value="80">
+        <span id="size-value">80</span>px
+        <button type="button" id="size-confirm-btn" class="btn-secondary">決定</button>
+      </div>
+
+      <div class="save-status" id="save-status"></div>
     </div>
 
     <% if (mode === "quick") { %>
     <div id="quick-color-palette" class="quick-color-bar" aria-label="色を選ぶ"></div>
     <% } %>
-
-    <% if (mode === "slow") { %>
-    <button type="button" id="color-picker-btn" class="floating-color-btn" aria-haspopup="dialog" aria-controls="color-modal" aria-label="色を選ぶ">🎨</button>
-    <div id="color-modal" class="color-modal" role="dialog" aria-modal="true" aria-hidden="true">
-      <div class="color-modal__backdrop" data-dismiss="color-modal"></div>
-      <div class="color-modal__panel">
-        <div class="color-modal__header">
-          <span>色を選ぶ</span>
-          <button type="button" id="color-modal-close" class="color-modal__close" aria-label="閉じる">閉じる</button>
-        </div>
-        <div id="color-modal-grid" class="color-modal__grid"></div>
-      </div>
-    </div>
-    <% } %>
-
-    <div id="size-control" class="size-control">
-      <label for="size-slider">サイズ</label>
-      <input id="size-slider" type="range" min="20" max="300" value="80">
-      <span id="size-value">80</span>px
-    </div>
-
-    <div class="save-status" id="save-status"></div>
   </div>
   <script src="/js/draw.js" defer></script>
 </body>

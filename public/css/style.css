@@ -6,14 +6,17 @@ body {
   justify-content: center;
   color: #4a4a4a;
   overflow: hidden;
-  height: 100svh;
+  height: 100dvh;
   width: 100vw;
+  position: fixed;
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
 .screen-container {
   width: 375px;
-  height: 100svh;
-  max-height: 100svh;
+  height: 100dvh;
+  max-height: 100dvh;
   background-color: #fff;
   position: relative;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
@@ -21,10 +24,12 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
 .full-screen {
-  height: 100svh;
+  height: 100dvh;
   justify-content: center;
   background-color: #fcfaf2;
 }
@@ -289,7 +294,10 @@ body {
   background-color: #d8d0c0;
   padding-bottom: 30px;
   overflow-y: auto;
-  max-height: 100svh;
+  overflow-x: hidden;
+  max-height: 100dvh;
+  overscroll-behavior: none;
+  touch-action: pan-y;
 }
 .color-screen.quick {
   background-image: url('../images/draw-quick-back.png');
@@ -406,12 +414,38 @@ body {
   background-color: #a89f91;
   padding: 0;
   justify-content: flex-start;
-  align-items: center;
-  overflow-y: auto;
+  align-items: stretch;
+  overflow: hidden;
   height: 100%;
   max-height: 100%;
-  touch-action: pan-y;
+  touch-action: none;
   position: relative;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
+}
+
+.draw-main {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 0 24px;
+  box-sizing: border-box;
+  gap: 0;
+  overscroll-behavior: none;
+  touch-action: pan-y;
+}
+
+.draw-screen-quick .draw-main {
+  padding-bottom: 140px;
+}
+
+.draw-main::-webkit-scrollbar {
+  display: none;
 }
 
 .draw-screen-slow {
@@ -699,11 +733,15 @@ body {
 
 .draw-controls {
   width: 100%;
-  padding: 10px 20px;
+  padding: 16px 20px 0;
   display: flex;
   justify-content: center;
   gap: 12px;
   flex-shrink: 0;
+}
+
+.draw-controls .btn-primary {
+  min-width: 160px;
 }
 
 .quick-color-bar {
@@ -719,6 +757,7 @@ body {
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
   flex-shrink: 0;
   z-index: 600;
+  align-self: stretch;
 }
 
 .quick-color-swatch {
@@ -949,7 +988,7 @@ body {
 
 .gallery-container {
   width: 375px;
-  height: 100svh;
+  height: 100dvh;
   overflow: hidden;
   position: relative;
 }
@@ -958,7 +997,7 @@ body {
   padding: 12px 0 15px;
   align-items: center;
   overflow-y: hidden;
-  max-height: 100svh;
+  max-height: 100dvh;
   background-image: url('../images/gallery-back.png');
   background-size: cover;
   gap: 8px;
@@ -985,7 +1024,7 @@ body {
   padding: 0 20px 8px 20px;
   flex: 1;
   min-height: 0;
-  max-height: calc(100svh - 140px);
+  max-height: calc(100dvh - 140px);
   width: 100%;
 }
 
@@ -1003,7 +1042,7 @@ body {
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   width: 140px;
-  height: calc((100svh - 140px - 36px) / 4);
+  height: calc((100dvh - 140px - 36px) / 4);
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -1059,8 +1098,8 @@ body {
   }
   .screen-container {
     width: 100%;
-    min-height: 100svh;
-    max-height: 100svh;
+    min-height: 100dvh;
+    max-height: 100dvh;
     border-radius: 0;
   }
   .gallery-container {
