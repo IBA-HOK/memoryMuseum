@@ -7,6 +7,52 @@
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
+  <!-- Hamburger Menu Button -->
+  <button class="hamburger-button" id="hamburgerBtn" aria-label="メニューを開く">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
+  <!-- Menu Overlay -->
+  <div class="menu-overlay" id="menuOverlay">
+    <nav class="menu-nav">
+      <ul class="menu-list">
+        <li class="menu-item item-orange">
+          <a href="/home" class="menu-link">ホーム</a>
+          <div class="menu-decoration">
+            <div class="line"></div>
+            <span class="star">★</span>
+          </div>
+        </li>
+
+        <li class="menu-item item-blue">
+          <a href="/atelier/mode" class="menu-link">アトリエ</a>
+          <div class="menu-decoration">
+            <div class="line"></div>
+            <span class="star">★</span>
+          </div>
+        </li>
+
+        <li class="menu-item item-pink">
+          <a href="/gallery" class="menu-link">展示室</a>
+          <div class="menu-decoration">
+            <div class="line"></div>
+            <span class="star">★</span>
+          </div>
+        </li>
+
+        <li class="menu-item item-green">
+          <a href="#" class="menu-link" id="logoutLink">ログアウト</a>
+          <div class="menu-decoration">
+            <div class="line"></div>
+            <span class="star">★</span>
+          </div>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
   <div class="screen-container color-screen <%= mode %>" data-mode="<%= mode %>" data-auto-selected="<%= autoSelected %>">
     <div class="header-text">今日使う5色を選ぶ</div>
     <div class="image-upload-section">
@@ -33,5 +79,39 @@
   </script>
   <script src="https://cdn.jsdelivr.net/npm/node-vibrant@3.2.1-alpha.1/dist/vibrant.min.js"></script>
   <script src="/js/palette.js" defer></script>
+  <script>
+    // Hamburger menu toggle
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const menuOverlay = document.getElementById('menuOverlay');
+    const logoutLink = document.getElementById('logoutLink');
+
+    hamburgerBtn.addEventListener('click', () => {
+      hamburgerBtn.classList.toggle('active');
+      menuOverlay.classList.toggle('active');
+    });
+
+    // Close menu when clicking outside
+    menuOverlay.addEventListener('click', (e) => {
+      if (e.target === menuOverlay) {
+        hamburgerBtn.classList.remove('active');
+        menuOverlay.classList.remove('active');
+      }
+    });
+
+    // Logout functionality
+    logoutLink.addEventListener('click', async (event) => {
+      event.preventDefault();
+      try {
+        const response = await fetch('/api/logout', { method: 'POST' });
+        if (response.ok || response.status === 401) {
+          window.location.href = '/login';
+          return;
+        }
+      } catch (err) {
+        console.error('Logout failed:', err);
+      }
+      alert('ログアウトに失敗しました');
+    });
+  </script>
 </body>
 </html>
