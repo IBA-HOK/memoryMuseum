@@ -81,10 +81,44 @@
       </div>
     </div>
 
-    <!-- 展示室B -->
+    <!-- 展示室B: 色度図ギャラリー -->
     <div class="screen-container gallery-screen" data-gallery-index="1">
       <h2>展示室B</h2>
-      <p class="empty-message">準備中</p>
+      <div class="chromaticity-card">
+        <div class="controls">
+          
+          <div class="actions">
+            <button id="resetChromaticity" class="btn-secondary">リセット</button>
+            <button id="zoomOutChrom" class="btn-secondary">−</button>
+            <span id="zoomLevelChrom">100%</span>
+            <button id="zoomInChrom" class="btn-secondary">＋</button>
+          </div>
+        </div>
+
+        <div class="plot-wrapper">
+          <canvas id="chromaticityCanvas" width="620" height="620" role="img" aria-label="展示作品の平均色をプロットした色度図"></canvas>
+        </div>
+
+        <div id="chromaticityStatus" class="empty-message">作品を読み込み中...</div>
+        <!-- Hidden source gallery for chromaticity plotting (script reads these .gallery-card img elements) -->
+        <% if (arts && arts.length) { %>
+          <div class="gallery-grid chroma-source" style="display:none;">
+            <% for (let i = 0; i < arts.length; i += 4) { %>
+              <div class="gallery-row">
+                <% arts.slice(i, i + 4).forEach(function(art) { %>
+                  <div class="gallery-card <%= art.shape === 'circle' ? 'shape-circle' : 'shape-square' %>" data-artid="<%= art.artid %>" data-title="<%= art.title || '' %>" data-date="<%= new Date(art.timestamp).toLocaleDateString('ja-JP') %>">
+                    <img src="<%= art.path %>" alt="作品 <%= art.artid %>" loading="lazy">
+                    <div class="card-footer">
+                      <span><%= new Date(art.timestamp).toLocaleDateString("ja-JP") %></span>
+                    </div>
+                  </div>
+                <% }); %>
+              </div>
+            <% } %>
+          </div>
+        <% } %>
+      </div>
+
       <div class="gallery-actions">
         <a href="/home" class="btn-secondary">ホームへ戻る</a>
         <a href="/atelier/mode" class="btn-link">アトリエへ</a>
@@ -121,6 +155,7 @@
   </div>
 
   <script src="/js/gallery.js"></script>
+  <script src="/js/chromaticity-gallery.js"></script>
   <script>
     // Hamburger menu toggle
     const hamburgerBtn = document.getElementById('hamburgerBtn');
