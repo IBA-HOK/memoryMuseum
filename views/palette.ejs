@@ -9,6 +9,12 @@
 <body>
   <div class="screen-container color-screen <%= mode %>" data-mode="<%= mode %>" data-auto-selected="<%= autoSelected %>">
     <div class="header-text">今日使う5色を選ぶ</div>
+    <div class="image-upload-section">
+      <label for="image-upload" class="btn-secondary image-upload-btn">
+        📷 画像から色を抽出
+      </label>
+      <input type="file" id="image-upload" accept="image/*" multiple style="display: none;">
+    </div>
     <div id="color-grid" class="color-grid"></div>
     <div class="selected-colors-info" id="selected-colors-info"></div>
     <form action="/atelier/draw" method="GET" class="palette-form">

@@ -7,6 +7,7 @@ const bcrypt = require("bcryptjs");
 const { v4: uuidv4 } = require("uuid");
 const { PrismaClient } = require("@prisma/client");
 const { findSimilarArts } = require("./ccv");
+const { Vibrant } = require("node-vibrant/node");
 require("dotenv").config();
 
 const app = express();
@@ -793,6 +794,70 @@ app.post("/api/save", requireAuth, async (req, res, next) => {
 // --------------------------------------------------------------------------
 // EXISTING IMAGE UPLOAD API (multipart)
 // --------------------------------------------------------------------------
+
+app.post("/api/extract-colors", requireAuth, upload.array("images", 10), async (req, res, next) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: "At least one image file is required" });
+    }
+
+    console.log(`Processing ${req.files.length} image(s) for color extraction`);
+    const allColors = [];
+    
+    for (const file of req.files) {
+      const imagePath = path.join(UPLOAD_DIR, file.filename);
+      console.log(`Processing image: ${imagePath}`);
+      try {
+        const vibrant = new Vibrant(imagePath);
+        const palette = await vibrant.getPalette();
+        
+        console.log(`Extracted palette for ${file.filename}:`, Object.keys(palette));
+        
+        const swatches = [
+          palette.Vibrant,
+          palette.DarkVibrant,
+          palette.LightVibrant,
+          palette.Muted,
+          palette.DarkMuted,
+          palette.LightMuted,
+        ].filter(swatch => swatch !== null && swatch !== undefined);
+        
+        console.log(`Found ${swatches.length} valid swatches`);
+        
+        swatches.forEach(swatch => {
+          const hex = swatch.hex;
+          console.log(`Extracted color: ${hex}`);
+          if (!allColors.includes(hex)) {
+            allColors.push(hex);
+          }
+        });
+        
+        fs.unlinkSync(imagePath);
+      } catch (err) {
+        console.error(`Failed to process ${file.filename}:`, err);
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+        }
+      }
+    }
+
+    console.log(`Total extracted colors: ${allColors.length}`, allColors);
+    
+    const selectedColors = allColors.slice(0, 5);
+    while (selectedColors.length < 5 && COLOR_POOL.length > 0) {
+      const randomColor = COLOR_POOL[Math.floor(Math.random() * COLOR_POOL.length)];
+      if (!selectedColors.includes(randomColor)) {
+        selectedColors.push(randomColor);
+      }
+    }
+
+    console.log(`Final selected colors: ${selectedColors.length}`, selectedColors);
+    res.json({ colors: selectedColors });
+  } catch (error) {
+    console.error("Error in extract-colors endpoint:", error);
+    next(error);
+  }
+});
 
 app.post("/api/upload", requireAuth, upload.single("image"), async (req, res, next) => {
   try {

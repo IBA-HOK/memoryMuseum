@@ -16,10 +16,16 @@ document.addEventListener("DOMContentLoaded", () => {
     selected: Array.isArray(data.selectedColors)
       ? [...data.selectedColors.slice(0, maxColors)]
       : [],
+    selectedChipIndex: null,
   };
 
   function syncHiddenInput() {
     hiddenInput.value = JSON.stringify(state.selected);
+  }
+
+  function selectChip(idx) {
+    state.selectedChipIndex = idx;
+    renderSelectedChips();
   }
 
   function renderSelectedChips() {
@@ -37,16 +43,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (data.autoSelected) {
       const hint = document.createElement("p");
-      hint.className = "selected-chip";
+      hint.className = "selected-hint";
       hint.textContent = "タップして色を入れ替えできます";
       info.appendChild(hint);
     }
     state.selected.forEach((color, idx) => {
       const chip = document.createElement("div");
       chip.className = "selected-chip";
+      if (state.selectedChipIndex === idx) {
+        chip.classList.add("selected");
+      }
       chip.style.backgroundColor = color;
       chip.style.color = "#fff";
       chip.textContent = `${idx + 1}. ${color}`;
+      chip.addEventListener("click", () => selectChip(idx));
       info.appendChild(chip);
     });
     if (submitBtn) {
@@ -55,11 +65,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function toggleColor(color) {
-    const index = state.selected.indexOf(color);
-    if (index >= 0) {
-      state.selected.splice(index, 1);
-    } else if (state.selected.length < maxColors) {
-      state.selected.push(color);
+    if (state.selectedChipIndex !== null) {
+      // Swap the selected chip with the new color
+      state.selected[state.selectedChipIndex] = color;
+      state.selectedChipIndex = null;
+    } else {
+      const index = state.selected.indexOf(color);
+      if (index >= 0) {
+        state.selected.splice(index, 1);
+      } else if (state.selected.length < maxColors) {
+        state.selected.push(color);
+      }
     }
     syncHiddenInput();
     updateActiveCells();
@@ -103,5 +119,54 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (submitBtn) {
     submitBtn.disabled = state.selected.length !== maxColors;
+  }
+
+  // Image upload handler
+  const imageUpload = document.getElementById("image-upload");
+  if (imageUpload) {
+    imageUpload.addEventListener("change", async (e) => {
+      const files = e.target.files;
+      if (!files || files.length === 0) return;
+
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        formData.append("images", files[i]);
+      }
+
+      try {
+        const response = await fetch("/api/extract-colors", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to extract colors");
+        }
+
+        const result = await response.json();
+        if (result.colors && result.colors.length > 0) {
+          // Add extracted colors to available colors
+          result.colors.forEach((color) => {
+            if (!data.availableColors.includes(color)) {
+              data.availableColors.unshift(color);
+            }
+          });
+          
+          // Auto-select the extracted colors
+          state.selected = result.colors.slice(0, maxColors);
+          
+          buildGrid();
+          updateActiveCells();
+          renderSelectedChips();
+          syncHiddenInput();
+        }
+      } catch (error) {
+        console.error("Error extracting colors:", error);
+        alert("画像から色を抽出できませんでした");
+      }
+
+      // Reset input
+      e.target.value = "";
+    });
   }
 });
