@@ -711,6 +711,15 @@ body {
   cursor: default;
 }
 
+/* When a paint color is selected first, enable painting mode on the canvas to
+   show a clickable cursor and hover affordance for shapes. */
+.canvas-area.painting-mode .placed-shape {
+  cursor: pointer;
+}
+.canvas-area.painting-mode .placed-shape:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
 .placed-shape svg {
   width: 100%;
   height: 100%;
