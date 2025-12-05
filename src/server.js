@@ -6,6 +6,7 @@ const multer = require("multer");
 const bcrypt = require("bcryptjs");
 const { v4: uuidv4 } = require("uuid");
 const { PrismaClient } = require("@prisma/client");
+const { findSimilarArts } = require("./ccv");
 require("dotenv").config();
 
 const app = express();
@@ -327,6 +328,17 @@ function selectQuickPalette() {
   return QUICK_MODE_PALETTES[randomIndex];
 }
 
+async function generateUntitledTitle() {
+  const untitledCount = await prisma.art.count({
+    where: {
+      title: {
+        startsWith: "無題No.",
+      },
+    },
+  });
+  return `無題No.${untitledCount + 1}`;
+}
+
 function decodeBase64Image(dataString) {
   if (typeof dataString !== "string" || dataString.length === 0) {
     throw new Error("imageData is required");
@@ -463,10 +475,13 @@ app.get("/atelier/palette", requireAuth, async (req, res, next) => {
     }
     flow.shape = shapeParam;
 
+    if (flow.mode === "slow") {
+      flow.colors = [];
+      return res.redirect(`/atelier/draw?shape=${shapeParam}`);
+    }
+
     if (flow.mode === "quick") {
-      if (!flow.colors || flow.colors.length !== 5) {
-        flow.colors = selectQuickPalette();
-      }
+      flow.colors = selectQuickPalette();
       return res.render("palette", {
         mode: flow.mode,
         shape: flow.shape,
@@ -509,18 +524,23 @@ app.get("/atelier/draw", requireAuth, async (req, res, next) => {
     }
 
     const colorsFromQuery = parseColorList(req.query.colors);
-    if (colorsFromQuery.length === 5) {
-      flow.colors = colorsFromQuery;
-    }
+    if (flow.mode === "quick") {
+      if (colorsFromQuery.length === 5) {
+        flow.colors = colorsFromQuery;
+      }
 
-    if (!flow.colors || flow.colors.length !== 5) {
-      return res.redirect("/atelier/palette");
+      if (!flow.colors || flow.colors.length !== 5) {
+        return res.redirect("/atelier/palette");
+      }
+    } else {
+      flow.colors = Array.isArray(flow.colors) ? flow.colors : [];
     }
 
     res.render("draw", {
       mode: flow.mode,
       shape: flow.shape,
       colors: flow.colors,
+      colorPool: COLOR_POOL,
       username: req.user.authinfo.userdecidedid,
     });
   } catch (error) {
@@ -557,11 +577,9 @@ app.put("/api/art/:artid/title", requireAuth, async (req, res, next) => {
     const artid = parseInt(req.params.artid, 10);
     const { title } = req.body;
 
-    if (!title || typeof title !== 'string') {
-      return res.status(400).json({ error: "タイトルが必要です" });
-    }
+    const rawTitle = typeof title === 'string' ? title.trim() : '';
 
-    if (title.length > 100) {
+    if (rawTitle.length > 100) {
       return res.status(400).json({ error: "タイトルは100文字以内にしてください" });
     }
 
@@ -577,12 +595,14 @@ app.put("/api/art/:artid/title", requireAuth, async (req, res, next) => {
       return res.status(403).json({ error: "この作品を編集する権限がありません" });
     }
 
+    const titleToSave = rawTitle || await generateUntitledTitle();
+
     await prisma.art.update({
       where: { artid },
-      data: { title: title.trim() },
+      data: { title: titleToSave },
     });
 
-    res.json({ success: true });
+    res.json({ success: true, title: titleToSave });
   } catch (error) {
     next(error);
   }
@@ -596,7 +616,7 @@ app.get("/gallery", requireAuth, async (req, res, next) => {
     }
     const arts = await prisma.art.findMany({
       where: { artid: { in: artIds } },
-      orderBy: { artid: "desc" },
+      orderBy: { timestamp: "desc" },
     });
     res.render("gallery", {
       arts: arts.map((art) => ({
@@ -706,7 +726,7 @@ app.get("/api/session", requireAuth, (req, res) => {
 
 app.post("/api/save", requireAuth, async (req, res, next) => {
   try {
-    const { imageData, mode, shape, colors } = req.body;
+    const { imageData, mode, shape, colors, title } = req.body;
     if (!imageData) {
       return res.status(400).json({ error: "imageData is required" });
     }
@@ -714,9 +734,15 @@ app.post("/api/save", requireAuth, async (req, res, next) => {
       return res.status(400).json({ error: "shape is required" });
     }
     const colorsArray = parseColorList(colors);
-    if (colorsArray.length !== 5) {
+    if (mode === "quick" && colorsArray.length !== 5) {
       return res.status(400).json({ error: "exactly 5 colors are required" });
     }
+
+    const providedTitle = typeof title === "string" ? title.trim() : "";
+    if (providedTitle.length > 100) {
+      return res.status(400).json({ error: "タイトルは100文字以内にしてください" });
+    }
+    const titleToSave = providedTitle || await generateUntitledTitle();
 
     const { buffer, ext } = decodeBase64Image(imageData);
     const filename = `${Date.now()}-${uuidv4()}${ext}`;
@@ -729,6 +755,7 @@ app.post("/api/save", requireAuth, async (req, res, next) => {
         path: relativePath,
         timestamp: BigInt(Date.now()),
         creatorid: req.user.userid,
+        title: titleToSave,
       },
     });
 
@@ -841,6 +868,62 @@ app.get("/api/arts/:artid", requireAuth, async (req, res, next) => {
       return res.status(404).json({ error: "art not found" });
     }
     res.json({ art: transformArt(art) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/similar-arts/:artid", requireAuth, async (req, res, next) => {
+  try {
+    const artid = Number(req.params.artid);
+    if (!Number.isInteger(artid)) {
+      return res.status(400).json({ error: "invalid art id" });
+    }
+
+    // Get the target art
+    const targetArt = await prisma.art.findUnique({ where: { artid } });
+    if (!targetArt) {
+      return res.status(404).json({ error: "art not found" });
+    }
+
+    // Get user's gallery art IDs
+    const artIds = await getUserGalleryArtIds(req.user);
+    if (artIds.length <= 1) {
+      return res.json({ similarArt: null });
+    }
+
+    // Get all arts except the target
+    const arts = await prisma.art.findMany({
+      where: { 
+        artid: { in: artIds, not: artid }
+      }
+    });
+
+    if (arts.length === 0) {
+      return res.json({ similarArt: null });
+    }
+
+    // Find similar arts using CCV
+    const targetImagePath = path.join(__dirname, '..', targetArt.path);
+    const artsWithPaths = arts.map(art => ({
+      ...art,
+      path: path.join(__dirname, '..', art.path)
+    }));
+
+    const similarArts = await findSimilarArts(targetImagePath, artsWithPaths, 5);
+    
+    // Randomly select one from top 5 similar arts
+    if (similarArts.length > 0) {
+      const randomIndex = Math.floor(Math.random() * similarArts.length);
+      const selectedArt = similarArts[randomIndex].art;
+      
+      res.json({ 
+        similarArt: transformArt(selectedArt),
+        similarity: similarArts[randomIndex].similarity
+      });
+    } else {
+      res.json({ similarArt: null });
+    }
   } catch (error) {
     next(error);
   }

@@ -11,7 +11,7 @@
     <div class="prompt-text">
       今日のキャンバスを選ぶ<br><span>どのキャンバスが貴方に相応しいですか?</span>
     </div>
-    <form action="/atelier/palette" method="GET" class="canvas-options">
+    <form action="<%= mode === 'slow' ? '/atelier/draw' : '/atelier/palette' %>" method="GET" class="canvas-options">
       <input type="hidden" name="mode" value="<%= mode %>">
       <button name="shape" value="circle" class="canvas-item circle" aria-label="円形キャンバス"></button>
       <button name="shape" value="square" class="canvas-item square" aria-label="四角キャンバス"></button>
