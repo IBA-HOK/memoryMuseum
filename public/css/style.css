@@ -917,8 +917,6 @@ body {
   color: #fff;
   border-radius: 20px;
   font-size: 12px;
-  transform: translateZ(9999px);
-  -webkit-transform: translateZ(9999px);
   z-index: 999999;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }

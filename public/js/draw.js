@@ -83,6 +83,16 @@
   const regenPaletteBtn = document.getElementById("regen-palette-btn");
   const completeBtn = document.getElementById("complete-btn");
   const sizeControl = document.getElementById("size-control");
+  // iOSのz-indexバグ対策：size-controlをbody直下に移動
+  if (sizeControl && sizeControl.parentElement !== document.body) {
+    document.body.appendChild(sizeControl);
+  }
+  (function(){
+  const sc = document.getElementById("size-control");
+  if (sc && sc.parentElement !== document.body) {
+    document.body.appendChild(sc);
+  }
+})();
   const sizeSlider = document.getElementById("size-slider");
   const sizeValue = document.getElementById("size-value");
   const sizeConfirmBtn = document.getElementById("size-confirm-btn");
