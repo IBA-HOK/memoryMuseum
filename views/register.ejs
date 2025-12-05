@@ -105,17 +105,20 @@
     }
     .auth-button {
       padding: 14px;
-      background: #577590;
+      background: linear-gradient(90deg, #6a11cb, #2575fc); /* Mimics the gradient of auth-button.png */
       color: white;
       border: none;
       border-radius: 10px;
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
-      transition: background 0.3s;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Adds depth */
+      transition: background 0.3s, box-shadow 0.3s;
     }
+
     .auth-button:hover {
-      background: #4d6680;
+      background: linear-gradient(90deg, #5a0fbf, #1f6ed4); /* Slightly darker gradient on hover */
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Enhanced shadow on hover */
     }
     .auth-switch {
       text-align: center;
