@@ -7,30 +7,69 @@
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <div class="screen-container gallery-screen">
-    <h2>展示室</h2>
-    <% if (!arts || arts.length === 0) { %>
-      <p class="empty-message">まだ作品がありません。アトリエで描いてみましょう。</p>
-    <% } else { %>
-      <div class="gallery-grid">
-        <% arts.forEach(function(art) { %>
-          <div class="gallery-card">
-            <img src="<%= art.path %>" alt="作品 <%= art.artid %>" loading="lazy">
-            <div class="card-footer">
-              <% if (art.title) { %>
-                <div style="font-weight: bold; margin-bottom: 4px;">「<%= art.title %>」</div>
-              <% } %>
-              <span>No.<%= art.artid %></span>
-              <span><%= new Date(art.timestamp).toLocaleDateString("ja-JP") %></span>
+  <div class="gallery-container">
+    <!-- 展示室A -->
+    <div class="screen-container gallery-screen" data-gallery-index="0">
+      <h2>展示室</h2>
+      <% if (!arts || arts.length === 0) { %>
+        <p class="empty-message">まだ作品がありません。アトリエで描いてみましょう。</p>
+      <% } else { %>
+        <div class="gallery-grid">
+          <% for (let i = 0; i < arts.length; i += 4) { %>
+            <div class="gallery-row">
+              <% arts.slice(i, i + 4).forEach(function(art) { %>
+                <div class="gallery-card" data-artid="<%= art.artid %>" data-title="<%= art.title || '' %>" data-date="<%= new Date(art.timestamp).toLocaleDateString('ja-JP') %>">
+                  <img src="<%= art.path %>" alt="作品 <%= art.artid %>" loading="lazy">
+                  <div class="card-footer">
+                    <span><%= new Date(art.timestamp).toLocaleDateString("ja-JP") %></span>
+                  </div>
+                </div>
+              <% }); %>
             </div>
-          </div>
-        <% }); %>
+          <% } %>
+        </div>
+      <% } %>
+      <div class="gallery-actions">
+        <a href="/home" class="btn-secondary">ホームへ戻る</a>
+        <a href="/atelier/mode" class="btn-link">アトリエへ</a>
       </div>
-    <% } %>
-    <div class="gallery-actions">
-      <a href="/home" class="btn-secondary">ホームへ戻る</a>
-      <a href="/atelier/mode" class="btn-link">アトリエへ</a>
+    </div>
+
+    <!-- 展示室B -->
+    <div class="screen-container gallery-screen" data-gallery-index="1">
+      <h2>展示室B</h2>
+      <p class="empty-message">準備中</p>
+      <div class="gallery-actions">
+        <a href="/home" class="btn-secondary">ホームへ戻る</a>
+        <a href="/atelier/mode" class="btn-link">アトリエへ</a>
+      </div>
+    </div>
+
+    <!-- 展示室C -->
+    <div class="screen-container gallery-screen" data-gallery-index="2">
+      <h2>展示室C</h2>
+      <p class="empty-message">準備中</p>
+      <div class="gallery-actions">
+        <a href="/home" class="btn-secondary">ホームへ戻る</a>
+        <a href="/atelier/mode" class="btn-link">アトリエへ</a>
+      </div>
     </div>
   </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="art-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <img id="modal-image" src="" alt="作品">
+      <div class="modal-info">
+        <h3 id="modal-title"></h3>
+        <p id="modal-date"></p>
+        <button id="similar-art-btn" class="btn-primary">似た絵</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/gallery.js"></script>
 </body>
 </html>
