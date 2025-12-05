@@ -327,6 +327,17 @@ function selectQuickPalette() {
   return QUICK_MODE_PALETTES[randomIndex];
 }
 
+async function generateUntitledTitle() {
+  const untitledCount = await prisma.art.count({
+    where: {
+      title: {
+        startsWith: "無題No.",
+      },
+    },
+  });
+  return `無題No.${untitledCount + 1}`;
+}
+
 function decodeBase64Image(dataString) {
   if (typeof dataString !== "string" || dataString.length === 0) {
     throw new Error("imageData is required");
@@ -567,11 +578,9 @@ app.put("/api/art/:artid/title", requireAuth, async (req, res, next) => {
     const artid = parseInt(req.params.artid, 10);
     const { title } = req.body;
 
-    if (!title || typeof title !== 'string') {
-      return res.status(400).json({ error: "タイトルが必要です" });
-    }
+    const rawTitle = typeof title === 'string' ? title.trim() : '';
 
-    if (title.length > 100) {
+    if (rawTitle.length > 100) {
       return res.status(400).json({ error: "タイトルは100文字以内にしてください" });
     }
 
@@ -587,12 +596,14 @@ app.put("/api/art/:artid/title", requireAuth, async (req, res, next) => {
       return res.status(403).json({ error: "この作品を編集する権限がありません" });
     }
 
+    const titleToSave = rawTitle || await generateUntitledTitle();
+
     await prisma.art.update({
       where: { artid },
-      data: { title: title.trim() },
+      data: { title: titleToSave },
     });
 
-    res.json({ success: true });
+    res.json({ success: true, title: titleToSave });
   } catch (error) {
     next(error);
   }
@@ -716,7 +727,7 @@ app.get("/api/session", requireAuth, (req, res) => {
 
 app.post("/api/save", requireAuth, async (req, res, next) => {
   try {
-    const { imageData, mode, shape, colors } = req.body;
+    const { imageData, mode, shape, colors, title } = req.body;
     if (!imageData) {
       return res.status(400).json({ error: "imageData is required" });
     }
@@ -727,6 +738,12 @@ app.post("/api/save", requireAuth, async (req, res, next) => {
     if (mode === "quick" && colorsArray.length !== 5) {
       return res.status(400).json({ error: "exactly 5 colors are required" });
     }
+
+    const providedTitle = typeof title === "string" ? title.trim() : "";
+    if (providedTitle.length > 100) {
+      return res.status(400).json({ error: "タイトルは100文字以内にしてください" });
+    }
+    const titleToSave = providedTitle || await generateUntitledTitle();
 
     const { buffer, ext } = decodeBase64Image(imageData);
     const filename = `${Date.now()}-${uuidv4()}${ext}`;
@@ -739,6 +756,7 @@ app.post("/api/save", requireAuth, async (req, res, next) => {
         path: relativePath,
         timestamp: BigInt(Date.now()),
         creatorid: req.user.userid,
+        title: titleToSave,
       },
     });
 

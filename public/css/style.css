@@ -6,13 +6,14 @@ body {
   justify-content: center;
   color: #4a4a4a;
   overflow: hidden;
-  height: 100dvh;
+  height: 100svh;
   width: 100vw;
 }
 
 .screen-container {
   width: 375px;
-  min-height: 667px;
+  height: 100svh;
+  max-height: 100svh;
   background-color: #fff;
   position: relative;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
@@ -23,7 +24,7 @@ body {
 }
 
 .full-screen {
-  height: 100dvh;
+  height: 100svh;
   justify-content: center;
   background-color: #fcfaf2;
 }
@@ -33,6 +34,9 @@ body {
   font-weight: bold;
   margin-bottom: 200px;
   letter-spacing: 2px;
+}
+.title-display--untitled {
+  color: rgba(51, 51, 51, 0.55);
 }
 
 .tap-start {
@@ -276,7 +280,7 @@ body {
   background-color: #d8d0c0;
   padding-bottom: 30px;
   overflow-y: auto;
-  max-height: 100dvh;
+  max-height: 100svh;
 }
 
 .header-text {
@@ -360,18 +364,18 @@ body {
   justify-content: flex-start;
   align-items: center;
   overflow-y: auto;
-  height: 100dvh;
-  max-height: 100dvh;
+  height: 100%;
+  max-height: 100%;
   touch-action: pan-y;
   position: relative;
 }
 
 .draw-screen-slow {
-  padding-bottom: 140px;
+  padding-bottom: 120px;
 }
 
 .draw-screen-quick {
-  padding-bottom: 140px;
+  padding-bottom: 120px;
 }
 
 .draw-header {
@@ -841,20 +845,23 @@ body {
 }
 
 .complete-screen {
-  padding: 40px 20px;
+  padding: 16px 20px 20px;
   text-align: center;
-  gap: 16px;
+  gap: 10px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .complete-screen h2 {
-  margin-bottom: 10px;
+  margin-bottom: 5px;
+  margin-top: 0;
 }
 
 .complete-art {
-  margin: 20px 0;
+  margin: 8px 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
 }
 
@@ -874,16 +881,17 @@ body {
 .complete-actions {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
   align-items: center;
+  padding-bottom: 8px;
 }
 
 .gallery-screen {
   padding: 30px 20px;
   align-items: stretch;
   overflow-y: auto;
-  max-height: 100dvh;
+  max-height: 100svh;
   background-image: url('../images/gallery-back.png');
   background-size: cover;
 }
@@ -944,8 +952,8 @@ body {
   }
   .screen-container {
     width: 100%;
-    min-height: 100dvh;
-    max-height: 100dvh;
+    min-height: 100svh;
+    max-height: 100svh;
     border-radius: 0;
   }
 }

@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/css/style.css">
   <style>
     .title-section {
-      margin: 20px 0;
+      margin: 8px 0;
       text-align: center;
     }
     .title-input-group {
@@ -41,31 +41,40 @@
       cursor: not-allowed;
     }
     .title-display {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: bold;
-      margin-top: 10px;
+      margin-top: 0;
       color: #333;
+    }
+    .complete-art .title-display {
+      order: 2;
+    }
+    .complete-art .art-meta {
+      order: 3;
     }
     .title-message {
       margin-top: 5px;
       font-size: 14px;
       color: #666;
     }
+    .complete-actions--hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
   <div class="screen-container complete-screen">
     <h2>今日の絵が完成しました！</h2>
-    <p>新たな絵が展示室に飾られました。<br>今日も一日お疲れ様でした！</p>
+    <p style="margin: 8px 0;">新たな絵が展示室に飾られました。<br>今日も一日お疲れ様でした！</p>
     <% if (art) { %>
       <div class="complete-art">
         <img src="<%= art.path %>" alt="保存された作品" loading="lazy">
+        <% if (art.title) { %>
+          <div class="title-display <%= /^無題No\.\d+$/.test(art.title) ? 'title-display--untitled' : '' %>">「<%= art.title %>」</div>
+        <% } %>
         <div class="art-meta">No.<%= art.artid %> / <%= new Date(art.timestamp).toLocaleString("ja-JP") %></div>
       </div>
       <div class="title-section">
-        <% if (art.title) { %>
-          <div class="title-display">「<%= art.title %>」</div>
-        <% } %>
         <div class="title-input-group">
           <input 
             type="text" 
@@ -82,11 +91,13 @@
     <% } else { %>
       <p class="complete-note">最新の作品情報が見つかりませんでした。</p>
     <% } %>
-    <div class="complete-actions">
+    <div id="navigationActions" class="complete-actions complete-actions--hidden">
       <a href="/gallery" class="btn-primary" style="background:none; padding:0; overflow:hidden; border-radius:20px;">
         <img src="/images/gallery-btn2.png" alt="展示室へ" style="width:100%; height:100%; display:block;">
       </a>
       <a href="/atelier/mode" class="btn-secondary">もう一度描く</a>
+    </div>
+    <div class="complete-actions">
       <a href="/home" class="btn-link">ホームに戻る</a>
     </div>
   </div>
@@ -96,15 +107,10 @@
     const titleInput = document.getElementById('titleInput');
     const saveTitleBtn = document.getElementById('saveTitleBtn');
     const titleMessage = document.getElementById('titleMessage');
+    const navigationActions = document.getElementById('navigationActions');
 
     saveTitleBtn.addEventListener('click', async () => {
       const title = titleInput.value.trim();
-      
-      if (!title) {
-        titleMessage.textContent = 'タイトルを入力してください';
-        titleMessage.style.color = '#f44336';
-        return;
-      }
 
       saveTitleBtn.disabled = true;
       saveTitleBtn.textContent = '保存中...';
@@ -118,12 +124,35 @@
           body: JSON.stringify({ title })
         });
 
+        const data = await response.json();
+
         if (response.ok) {
-          titleMessage.textContent = 'タイトルを保存しました！';
+          const savedTitle = data?.title || title;
+          titleMessage.textContent = `タイトルを「${savedTitle}」に保存しました！`;
           titleMessage.style.color = '#4CAF50';
-          location.reload();
+          navigationActions.classList.remove('complete-actions--hidden');
+          
+          // Update or create title display
+          const completeArt = document.querySelector('.complete-art');
+          let titleDisplay = completeArt.querySelector('.title-display');
+          
+          if (titleDisplay) {
+            titleDisplay.textContent = `「${savedTitle}」`;
+            titleDisplay.classList.toggle('title-display--untitled', /^無題No\.\d+$/.test(savedTitle));
+          } else {
+            titleDisplay = document.createElement('div');
+            titleDisplay.className = 'title-display' + (/^無題No\.\d+$/.test(savedTitle) ? ' title-display--untitled' : '');
+            titleDisplay.textContent = `「${savedTitle}」`;
+            const artMeta = completeArt.querySelector('.art-meta');
+            completeArt.insertBefore(titleDisplay, artMeta);
+          }
+          
+          // Hide input group
+          const inputGroup = document.querySelector('.title-input-group');
+          if (inputGroup) {
+            inputGroup.style.display = 'none';
+          }
         } else {
-          const data = await response.json();
           titleMessage.textContent = data.error || '保存に失敗しました';
           titleMessage.style.color = '#f44336';
         }
