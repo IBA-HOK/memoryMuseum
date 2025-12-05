@@ -13,14 +13,25 @@
       justify-content: center;
       min-height: 100vh;
       padding: 20px;
+
+      background-image: url('/images/auth-screen.png');
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
     }
     .auth-container {
       width: 100%;
-      max-width: 400px;
-      background: white;
+      max-width: 100%;
+      box-sizing: border-box;
+      
+      aspect-ratio: 353 / 683;
+      background-image: url('/images/auth-container.png');
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      background-position: top center;
+
       padding: 40px;
       border-radius: 20px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     }
     .auth-title {
       font-size: 28px;
