@@ -86,7 +86,7 @@
 
   function renderQuickColorPalette() {
     if (!quickColorPalette) return;
-    const paletteSource = colorPool.length > 0 ? colorPool : userColors;
+    const paletteSource = userColors.length > 0 ? userColors : (colorPool.length > 0 ? colorPool : DEFAULT_QUICK_COLORS);
     const base = paletteSource.length > 0 ? paletteSource : DEFAULT_QUICK_COLORS;
     const paletteColors = base.slice(0, 5);
     let fallbackIndex = 0;
