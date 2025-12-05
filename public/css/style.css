@@ -370,6 +370,10 @@ body {
   padding-bottom: 140px;
 }
 
+.draw-screen-quick {
+  padding-bottom: 140px;
+}
+
 .draw-header {
   width: 100%;
   padding: 8px 20px;
@@ -644,6 +648,48 @@ body {
   justify-content: center;
   gap: 12px;
   flex-shrink: 0;
+}
+
+.quick-color-bar {
+  width: 100%;
+  padding: 12px 20px 18px;
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
+  position: sticky;
+  bottom: 0;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
+  flex-shrink: 0;
+  z-index: 600;
+}
+
+.quick-color-swatch {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  background-color: #d0ccc4;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.quick-color-swatch:hover,
+.quick-color-swatch:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.16);
+}
+
+.quick-color-swatch:focus-visible {
+  outline: 2px solid #fff7d1;
+  outline-offset: 2px;
+}
+
+.quick-color-swatch.active {
+  border-color: #4a4a4a;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.18);
+  transform: translateY(-2px);
 }
 
 .floating-color-btn {
