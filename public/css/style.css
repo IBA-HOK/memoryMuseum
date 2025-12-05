@@ -1025,6 +1025,17 @@ body {
   min-height: 0;
   max-height: calc(100dvh - 140px);
   width: 100%;
+  /* responsive sizes:
+     --gallery-footer-height: explicit height reserved for the card footer (title/date)
+     --gallery-card-size: target image square size (prefer 140px, but shrink if viewport too short)
+     calculation: per-row available + footer height so the image area is allowed to reach 140px
+  */
+    --gallery-footer-height: 32px;
+    /* total vertical gaps between stacked items in a column: 3 gaps of 12px when 4 items */
+    --gallery-column-gaps: 36px; /* 3 * 12px */
+    /* Compute per-item available height = (available grid height - gaps) / 4
+      Then subtract footer height to get image square size. */
+    --gallery-card-size: min(140px, calc((100dvh - 140px - var(--gallery-column-gaps)) / 4 - var(--gallery-footer-height)) );
 }
 
 .gallery-row {
@@ -1040,8 +1051,9 @@ body {
   border-radius: 12px;
   overflow: visible;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  width: 140px;
-  height: calc((100dvh - 140px - 36px) / 4);
+  width: var(--gallery-card-size, 140px);
+  /* card height is image height + footer; keep auto so footer is outside the square image */
+  height: auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -1050,26 +1062,36 @@ body {
 }
 
 .gallery-card.shape-circle {
-  border-radius: 0;
+  /* keep the card rectangular so footer stays readable; round only the image */
+  border-radius: 12px;
   background-color: transparent;
   box-shadow: none;
 }
 
 .gallery-card.shape-circle img {
+  width: 100%;
+  height: var(--gallery-card-size, 140px);
+  object-fit: cover;
   border-radius: 50%;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: block;
 }
 
 .gallery-card img {
   width: 100%;
-  flex: 1;
-  object-fit: contain;
+  height: var(--gallery-card-size, 140px);
+  object-fit: cover;
   min-height: 0;
+  display: block;
 }
 
 .card-footer {
-  padding: 6px 8px;
+  /* footer is fixed height and excluded from image square area */
+  height: var(--gallery-footer-height, 32px);
+  line-height: var(--gallery-footer-height, 32px);
+  padding: 0 8px;
   display: flex;
+  align-items: center;
   justify-content: center;
   font-size: 11px;
   flex-shrink: 0;
@@ -1148,6 +1170,25 @@ body {
   max-width: 100%;
   max-height: 60vh;
   object-fit: contain;
+}
+
+/* Modal shape-specific styles */
+.modal-content img.shape-circle {
+  width: min(80vw, 360px);
+  height: min(80vw, 360px);
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+  margin: 0 auto;
+}
+
+.modal-content img.shape-square {
+  width: min(80vw, 360px);
+  height: auto;
+  object-fit: contain;
+  border-radius: 12px;
+  display: block;
+  margin: 0 auto;
 }
 
 .modal-info {

@@ -80,21 +80,31 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize gallery positions
   updateGalleryPosition(true);
 
-  // Collect all arts data
+  // Collect all arts data (include shape info)
   document.querySelectorAll('.gallery-card').forEach(card => {
+    const shape = card.classList.contains('shape-circle') ? 'circle' : 'square';
     allArts.push({
       artid: card.getAttribute('data-artid'),
       title: card.getAttribute('data-title'),
       date: card.getAttribute('data-date'),
-      imgSrc: card.querySelector('img').src
+      imgSrc: card.querySelector('img').src,
+      shape: shape
     });
   });
 
-  function showArt(artid, title, date, imgSrc) {
+  // showArt now accepts shape ('circle' or 'square') and applies class to modal image
+  function showArt(artid, title, date, imgSrc, shape) {
     currentArtId = artid;
     modalImage.src = imgSrc;
     modalTitle.textContent = title ? `「${title}」` : '無題';
     modalDate.textContent = date;
+    // apply shape class
+    modalImage.classList.remove('shape-circle', 'shape-square');
+    if (shape === 'circle') {
+      modalImage.classList.add('shape-circle');
+    } else {
+      modalImage.classList.add('shape-square');
+    }
     modal.style.display = 'flex';
   }
 
@@ -105,7 +115,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const title = this.getAttribute('data-title');
       const date = this.getAttribute('data-date');
       const imgSrc = this.querySelector('img').src;
-      showArt(artid, title, date, imgSrc);
+      const shape = this.classList.contains('shape-circle') ? 'circle' : 'square';
+      showArt(artid, title, date, imgSrc, shape);
     });
   });
 
