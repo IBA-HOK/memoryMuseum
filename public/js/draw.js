@@ -23,6 +23,8 @@
   })();
 
   const isSlowMode = mode === "slow";
+  const isQuickMode = mode === "quick";
+  const usesNeutralShapeColoring = isSlowMode || isQuickMode;
   const NEUTRAL_SHAPE_COLOR = "#d0ccc4";
 
   const canvasArea = document.getElementById("canvas-area");
@@ -40,6 +42,7 @@
   const colorModal = document.getElementById("color-modal");
   const colorModalGrid = document.getElementById("color-modal-grid");
   const colorModalClose = document.getElementById("color-modal-close");
+  const quickColorPalette = document.getElementById("quick-color-palette");
 
   let state = {
     placed: [],
@@ -53,14 +56,59 @@
   let currentPalette = []; // {type, size, color, kept: boolean}
   let colorModalLastFocus = null;
 
-  if (isSlowMode) {
-    state.activePaintColor = null;
-  } else if (userColors.length > 0) {
-    state.activePaintColor = userColors[0];
+  const DEFAULT_QUICK_COLORS = ['#f87171', '#facc15', '#4ade80', '#60a5fa', '#a855f7'];
+
+  if (!usesNeutralShapeColoring && userColors.length > 0) {
+    setActivePaintColor(userColors[0]);
   }
 
   const SHAPE_TYPES = ['circle', 'square', 'triangle', 'hexagon'];
   const MAX_PALETTE_SIZE = 8;
+
+  function normalizeColor(color) {
+    return (color || '').toString().trim().toLowerCase();
+  }
+
+  function isSameColor(a, b) {
+    return normalizeColor(a) === normalizeColor(b);
+  }
+
+  function setActivePaintColor(color) {
+    state.activePaintColor = color || null;
+    if (!quickColorPalette) return;
+    const normalized = normalizeColor(state.activePaintColor);
+    quickColorPalette.querySelectorAll('.quick-color-swatch').forEach((el) => {
+      const isActive = el.dataset.color === normalized && normalized !== '';
+      el.classList.toggle('active', isActive);
+      el.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+  }
+
+  function renderQuickColorPalette() {
+    if (!quickColorPalette) return;
+    const paletteSource = colorPool.length > 0 ? colorPool : userColors;
+    const base = paletteSource.length > 0 ? paletteSource : DEFAULT_QUICK_COLORS;
+    const paletteColors = base.slice(0, 5);
+    let fallbackIndex = 0;
+    while (paletteColors.length < 5) {
+      paletteColors.push(DEFAULT_QUICK_COLORS[fallbackIndex % DEFAULT_QUICK_COLORS.length]);
+      fallbackIndex += 1;
+    }
+    quickColorPalette.innerHTML = '';
+    paletteColors.forEach((color) => {
+      const normalized = normalizeColor(color);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'quick-color-swatch';
+      button.style.backgroundColor = color;
+      button.dataset.color = normalized;
+      button.setAttribute('aria-label', color);
+      button.setAttribute('aria-pressed', 'false');
+      button.addEventListener('click', () => handleColorSelection(color));
+      quickColorPalette.appendChild(button);
+    });
+    setActivePaintColor(state.activePaintColor);
+  }
 
   function randomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -75,7 +123,7 @@
   }
 
   function randomColorFromPalette() {
-    if (isSlowMode) return null;
+    if (usesNeutralShapeColoring) return null;
     if (userColors.length === 0) return '#999';
     return userColors[randomInt(0, userColors.length - 1)];
   }
@@ -255,7 +303,7 @@
       applied = applyColorToPlacedShape(state.selectedId, color);
     }
 
-    state.activePaintColor = color;
+    setActivePaintColor(color);
     closeColorModal();
   }
 
@@ -270,7 +318,7 @@
       button.className = 'color-modal__swatch';
       button.style.backgroundColor = color;
       button.setAttribute('aria-label', color);
-      if (state.activePaintColor === color) {
+      if (isSameColor(state.activePaintColor, color)) {
         button.classList.add('active');
       }
       button.addEventListener('click', () => handleColorSelection(color));
@@ -480,7 +528,7 @@
 
     const resolvedColor = spec.color != null
       ? spec.color
-      : (isSlowMode ? (state.activePaintColor || NEUTRAL_SHAPE_COLOR) : NEUTRAL_SHAPE_COLOR);
+      : (usesNeutralShapeColoring ? (state.activePaintColor || NEUTRAL_SHAPE_COLOR) : NEUTRAL_SHAPE_COLOR);
 
     const id = idCounter++;
     const shape = { id, type: spec.type, color: resolvedColor, w, h, x, y, locked: false };
@@ -775,6 +823,11 @@
   });
 
   setupColorModal();
+  renderQuickColorPalette();
   generatePalette(8);
-  if (statusEl) statusEl.textContent = mode === "quick" ? "図形をドラッグして配置してみましょう！" : "じっくり図形を組み合わせてみましょう。";
+  if (statusEl) {
+    statusEl.textContent = mode === "quick"
+      ? "図形をドラッグして配置し、下の色で彩ってみましょう！"
+      : "じっくり図形を組み合わせてみましょう。";
+  }
 })();
