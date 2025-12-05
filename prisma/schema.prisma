@@ -46,6 +46,7 @@ model Art {
   creatorid   Int
   title       String?
   share_token String? @unique
+  shape       String? @default("square")
 
   creator User @relation(fields: [creatorid], references: [userid])
 }

@@ -242,6 +242,7 @@ function transformArt(art) {
     path: art.path,
     timestamp: Number(art.timestamp),
     creatorid: art.creatorid,
+    shape: art.shape || "square",
   };
 }
 
@@ -798,6 +799,7 @@ app.post("/api/save", requireAuth, async (req, res, next) => {
         timestamp: BigInt(Date.now()),
         creatorid: req.user.userid,
         title: titleToSave,
+        shape: shape || "square",
       },
     });
 

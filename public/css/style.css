@@ -1038,7 +1038,7 @@ body {
 .gallery-card {
   background-color: #f7f4ec;
   border-radius: 12px;
-  overflow: hidden;
+  overflow: visible;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   width: 140px;
   height: calc((100dvh - 140px - 36px) / 4);
@@ -1046,6 +1046,18 @@ body {
   display: flex;
   flex-direction: column;
   cursor: pointer;
+  position: relative;
+}
+
+.gallery-card.shape-circle {
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.gallery-card.shape-circle img {
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .gallery-card img {
@@ -1062,6 +1074,8 @@ body {
   font-size: 11px;
   flex-shrink: 0;
   background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 6px;
+  margin-top: 4px;
 }
 
 .gallery-actions {
