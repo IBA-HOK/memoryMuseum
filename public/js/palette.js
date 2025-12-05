@@ -4,13 +4,18 @@ document.addEventListener("DOMContentLoaded", () => {
     // Allow touch events on interactive elements
     const target = e.target;
     const isInteractive = target.tagName === 'BUTTON' ||
-                         target.closest('button') ||
-                         target.tagName === 'LABEL' ||
-                         target.closest('label') ||
-                         target.classList.contains('color-cell') ||
-                         target.closest('.color-cell') ||
-                         target.classList.contains('selected-chip') ||
-                         target.closest('.selected-chip');
+               target.closest('button') ||
+               target.tagName === 'LABEL' ||
+               target.closest('label') ||
+               target.tagName === 'A' ||
+               target.closest('a') ||
+               target.classList.contains('color-cell') ||
+               target.closest('.color-cell') ||
+               target.classList.contains('selected-chip') ||
+               target.closest('.selected-chip') ||
+               target.closest('.menu-overlay') ||
+               target.closest('.menu-nav') ||
+               target.closest('.menu-list');
 
     if (isInteractive) return; // Allow touch on interactive elements
 
