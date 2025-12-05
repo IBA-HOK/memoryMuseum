@@ -613,7 +613,6 @@ body {
 
 .placed-shape.locked {
   cursor: default;
-  opacity: 0.95;
 }
 
 .placed-shape svg {
@@ -1165,4 +1164,172 @@ body {
 
 .close:hover {
   color: black;
+}
+
+/* ========== Hamburger Menu ========== */
+.hamburger-button {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2000;
+  background: rgba(59, 48, 107, 0.9);
+  border: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  transition: transform 0.3s ease, background 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.hamburger-button:hover {
+  transform: scale(1.05);
+  background: rgba(72, 61, 139, 0.95);
+}
+
+.hamburger-button span {
+  display: block;
+  width: 24px;
+  height: 3px;
+  background: white;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.hamburger-button.active span:nth-child(1) {
+  transform: rotate(45deg) translate(7px, 7px);
+}
+
+.hamburger-button.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-button.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -7px);
+}
+
+/* メニュー全体の背景と配置 */
+.menu-overlay {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(to bottom, #3b306b, #483d8b);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1500;
+  transition: right 0.4s ease;
+}
+
+.menu-overlay.active {
+  right: 0;
+}
+
+.menu-nav {
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+}
+
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* リンクテキストのスタイル */
+.menu-link {
+  color: white;
+  text-decoration: none;
+  font-size: 1.5rem;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  display: block;
+  margin-bottom: 5px;
+  font-family: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  transition: transform 0.2s ease;
+}
+
+.menu-link:hover {
+  transform: scale(1.05);
+}
+
+/* 装飾ラインと星のラッパー */
+.menu-decoration {
+  position: relative;
+  width: 200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+}
+
+/* ラインの共通スタイル */
+.menu-decoration .line {
+  flex-grow: 1;
+  height: 2px;
+  background: white;
+  border-radius: 2px;
+  opacity: 0.8;
+}
+
+/* 星の共通スタイル */
+.menu-decoration .star {
+  font-size: 14px;
+  margin-left: 5px;
+  line-height: 1;
+}
+
+/* --- 各色の定義 (グラデーションと発光効果) --- */
+
+/* ホームへ (オレンジ) */
+.item-orange .line {
+  background: linear-gradient(90deg, transparent, #ffcc00);
+  box-shadow: 0 0 8px #ffcc00;
+}
+.item-orange .star {
+  color: #ffcc00;
+  text-shadow: 0 0 8px #ffcc00;
+}
+
+/* アトリエ (青) */
+.item-blue .line {
+  background: linear-gradient(90deg, transparent, #00bfff);
+  box-shadow: 0 0 8px #00bfff;
+}
+.item-blue .star {
+  color: #00bfff;
+  text-shadow: 0 0 8px #00bfff;
+}
+
+/* 展示室 (ピンク) */
+.item-pink .line {
+  background: linear-gradient(90deg, transparent, #ff69b4);
+  box-shadow: 0 0 8px #ff69b4;
+}
+.item-pink .star {
+  color: #ff69b4;
+  text-shadow: 0 0 8px #ff69b4;
+}
+
+/* ログアウト (緑) */
+.item-green .line {
+  background: linear-gradient(90deg, transparent, #00ff7f);
+  box-shadow: 0 0 8px #00ff7f;
+}
+.item-green .star {
+  color: #00ff7f;
+  text-shadow: 0 0 8px #00ff7f;
 }
