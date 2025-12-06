@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <div class="screen-container draw-screen-v2 <%= mode === 'slow' ? 'draw-screen-slow' : (mode === 'quick' ? 'draw-screen-quick' : '') %>" data-shape="<%= shape %>" data-mode="<%= mode %>" data-colors='<%- JSON.stringify(colors) %>' data-color-pool='<%- JSON.stringify(colorPool) %>'>
+  <div class="screen-container <%= mode %> draw-screen-v2 <%= mode === 'slow' ? 'draw-screen-slow' : (mode === 'quick' ? 'draw-screen-quick' : '') %>" data-shape="<%= shape %>" data-mode="<%= mode %>" data-colors='<%- JSON.stringify(colors) %>' data-color-pool='<%- JSON.stringify(colorPool) %>'>
     <div class="draw-main">
       <div class="draw-header">
         <span><%= mode === "slow" ? "じっくりモード" : "サクッとモード" %></span>

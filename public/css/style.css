@@ -28,6 +28,16 @@ body {
   touch-action: none;
 }
 
+.screen-container.quick {
+  background-image: url('../images/draw-quick-back.png');
+  background-size: cover;
+}
+
+.screen-container.slow {
+  background-image: url('../images/draw-slow-back.png');
+  background-size: cover;
+}
+
 .full-screen {
   height: 100dvh;
   justify-content: center;
@@ -193,18 +203,13 @@ body {
 }
 
 .mode-circle {
-  width: min(200px, 60vw);
-  height: min(200px, 60vw);
-  border-radius: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  color: white;
-  transition: transform 0.2s ease;
-  background: none;
-  overflow: hidden;
+  width: min(60vw, 280px);
+  overflow: visible;
+}
+.mode-img {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .mode-circle:hover {
@@ -306,6 +311,27 @@ body {
 .color-screen.slow {
   background-image: url('../images/draw-slow-back.png');
   background-size: cover;
+}
+
+.color-screen .btn-primary {
+  padding: 14px 20px;
+  background: linear-gradient(90deg, #6a11cb, #2575fc);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: inline-block;
+  text-align: center;
+  width: 100%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.color-screen .btn-primary:hover {
+  background: linear-gradient(90deg, #5a0fbf, #1f6ed4);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 .header-text {
@@ -517,6 +543,27 @@ body {
   position: relative;
   overscroll-behavior-x: none;
   overscroll-behavior-y: none;
+}
+
+.draw-screen-v2 .btn-primary {
+  padding: 14px 20px;
+  background: linear-gradient(90deg, #6a11cb, #2575fc);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: inline-block;
+  text-align: center;
+  width: 45%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.draw-screen-v2 .btn-primary:hover {
+  background: linear-gradient(90deg, #5a0fbf, #1f6ed4);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 .draw-main {
